@@ -3,14 +3,22 @@ class IRBView < NSView
   
   def initWithViewController(viewController)
     if init
-      self.viewController = viewController
-      
       @outlineView = NSOutlineView.alloc.init
+      @outlineView.headerView = nil
+      
+      promptColumn = NSTableColumn.alloc.initWithIdentifier("prompt")
+      promptColumn.editable = false
+      promptColumn.minWidth = 100.0
+      promptColumn.width = 100.0
+      @outlineView.addTableColumn(promptColumn)
+      @outlineView.addTableColumn(NSTableColumn.alloc.initWithIdentifier("result"))
       
       scrollView = NSScrollView.alloc.init
       scrollView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable
       scrollView.documentView = @outlineView
       addSubview(scrollView)
+      
+      self.viewController = viewController
       
       self
     end
@@ -18,10 +26,13 @@ class IRBView < NSView
   
   # http://cocoawithlove.com/2008/07/better-integration-for-nsviewcontroller.html
   def setViewController(viewController)
-    @viewController = viewController
-    ownNextResponder = nextResponder
-    self.nextResponder = @viewController
+    @viewController               = viewController
+    ownNextResponder              = nextResponder
+    self.nextResponder            = @viewController
     @viewController.nextResponder = ownNextResponder
+    
+    @outlineView.dataSource       = @viewController
+    @outlineView.delegate         = @viewController
   end
   
   def setNextResponder(nextResponder)
