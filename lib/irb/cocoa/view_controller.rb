@@ -122,9 +122,7 @@ class IRBViewController < NSViewController
       loop do
         if input = Thread.current[:input]
           Thread.current[:input] = nil
-          Thread.current[:running] = true
           @context.process_line(input)
-          Thread.current[:running] = false
         end
       end
     end
