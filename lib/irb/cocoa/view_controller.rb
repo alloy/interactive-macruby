@@ -118,7 +118,6 @@ class IRBViewController < NSViewController
     
     @thread = Thread.new do
       IRB::Driver.current = @driver
-      Thread.current[:running] = false
       loop do
         if input = Thread.current[:input]
           Thread.current[:input] = nil
