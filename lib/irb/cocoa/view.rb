@@ -1,5 +1,5 @@
 class IRBView < NSView
-  attr_reader :viewController
+  attr_reader :viewController, :outlineView
   
   def initWithViewController(viewController)
     if init
@@ -8,8 +8,8 @@ class IRBView < NSView
       
       promptColumn = NSTableColumn.alloc.initWithIdentifier("prompt")
       promptColumn.editable = false
-      promptColumn.minWidth = 100.0
-      promptColumn.width = 100.0
+      promptColumn.minWidth = 150.0
+      promptColumn.width = 150.0
       @outlineView.addTableColumn(promptColumn)
       @outlineView.addTableColumn(NSTableColumn.alloc.initWithIdentifier("result"))
       
