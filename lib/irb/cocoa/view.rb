@@ -14,10 +14,10 @@ class IRBView < NSView
       @outlineView.addTableColumn(promptColumn)
       @outlineView.addTableColumn(NSTableColumn.alloc.initWithIdentifier("value"))
       
-      scrollView = NSScrollView.alloc.init
-      scrollView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable
-      scrollView.documentView = @outlineView
-      addSubview(scrollView)
+      @scrollView = NSScrollView.alloc.init
+      @scrollView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable
+      @scrollView.documentView = @outlineView
+      addSubview(@scrollView)
       
       self.viewController = viewController
       
@@ -27,28 +27,21 @@ class IRBView < NSView
   
   # http://cocoawithlove.com/2008/07/better-integration-for-nsviewcontroller.html
   def setViewController(viewController)
+    # ownNextResponder              = nextResponder
+    # self.nextResponder            = viewController
+    # viewController.nextResponder  = ownNextResponder
+    
     @viewController               = viewController
-    ownNextResponder              = nextResponder
-    self.nextResponder            = @viewController
-    @viewController.nextResponder = ownNextResponder
     
     @outlineView.dataSource       = @viewController
     @outlineView.delegate         = @viewController
   end
   
-  def setNextResponder(nextResponder)
-    @viewController.nextResponder = nextResponder
-  end
-  
-  # def setFrameSize(size)
-  #   p size
-  #   super
-  #   # p subviews.first.frame
-  #   p @outlineView.frame
+  # def setNextResponder(nextResponder)
+  #   if @viewController
+  #     @viewController.nextResponder = nextResponder
+  #   else
+  #     super
+  #   end
   # end
-  
-  def drawRect(rect)
-    NSColor.blueColor.set
-    NSBezierPath.fillRect(rect)
-  end
 end

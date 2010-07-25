@@ -51,9 +51,11 @@ class IRBViewController < NSViewController
       
       @inputCell = NSTextFieldCell.alloc.init
       @inputCell.editable = true
+      @inputCell.bordered = false
       @inputCell.focusRingType = NSFocusRingTypeNone
       
       setupContextForObject(object, binding: binding)
+      performSelector('editInputCell', withObject: nil, afterDelay: 0)
       
       self
     end
@@ -66,6 +68,7 @@ class IRBViewController < NSViewController
   def receivedOutput(output)
     addRowWithPrompt(IRB::Formatter::RESULT_PREFIX, value: output)
     view.outlineView.reloadData
+    editInputCell
   end
   
   # outline view data source methods
@@ -136,6 +139,17 @@ class IRBViewController < NSViewController
         end
       end
     end
+  end
+  
+  def editInputCell
+    if @registered.nil? && window = view.window
+      @registered = true
+      NSNotificationCenter.defaultCenter.addObserver(self,
+                                           selector: 'editInputCell',
+                                               name: NSWindowDidBecomeKeyNotification,
+                                             object: window)
+    end
+    view.outlineView.editColumn(1, row: @rows.size, withEvent: nil, select: false)
   end
   
   def rightAlignedString(string)
