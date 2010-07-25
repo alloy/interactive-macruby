@@ -1,67 +1,6 @@
-require 'irb'
-require 'irb/driver'
-require 'irb/ext/completion'
-require 'irb/ext/colorize'
-
-module IRB
-  # class CocoaFormatter < ColoredFormatter
-  #   def result(object)
-  #     string = inspect_object(object)
-  #     attributedString = NSMutableAttributedString.alloc.initWithString(string)
-  #     # p attributedString
-  #     attributedString.addAttributes({ NSForegroundColorAttributeName => NSColor.redColor }, range: NSMakeRange(0, string.size))
-  #     attributedString
-  #   end
-  # end
-  
-  class CocoaFormatter < Formatter
-    def result(object)
-      inspect_object(object)
-    end
-  end
-  
-  class CocoaColoredFormatter < ColoredFormatter
-    def colorize_token(type, token)
-      if color = color(type)
-        "#{Color.escape(color)}#{token}#{Color::CLEAR}"
-      else
-        token
-      end
-    end
-  end
-end
-
-module IRB
-  class Completion
-    def initialize(context = nil)
-      @context = context
-    end
-    
-    def context
-      @context || IRB::Driver.current.context
-    end
-  end
-end
-
-$stdout = IRB::Driver::OutputRedirector.new
+require 'irb_ext'
 
 class IRBViewController < NSViewController
-  class Output
-    NEW_LINE = "\n"
-    
-    def initialize(viewController)
-      @controller = viewController
-    end
-    
-    def write(string)
-      unless string == NEW_LINE
-        @controller.performSelectorOnMainThread("receivedOutput:",
-                                    withObject: string,
-                                 waitUntilDone: false)
-      end
-    end
-  end
-  
   PROMPT = "prompt"
   VALUE  = "value"
   EMPTY  = ""
@@ -73,7 +12,7 @@ class IRBViewController < NSViewController
       @rows = []
       @delegate = delegate
       
-      @colorizationFormatter = IRB::CocoaColoredFormatter.new
+      @colorizationFormatter = IRB::Cocoa::ColoredFormatter.new
       setupIRBForObject(object, binding: binding)
       
       @resultCell = NSTextFieldCell.alloc.init
@@ -95,17 +34,24 @@ class IRBViewController < NSViewController
     self.view = IRBView.alloc.initWithViewController(self)
   end
   
-  def colorize(string)
-    p @colorizationFormatter.colorize(string)
-    attributedString = NSMutableAttributedString.alloc.initWithString(string)
-    attributedString.addAttributes({ NSForegroundColorAttributeName => NSColor.redColor }, range: NSMakeRange(0, string.size))
-    attributedString
+  def needsMoreInput
+    updateOutlineView
+  end
+  
+  def receivedResult(result)
+    colorizedResultValue = @colorizationFormatter.result(result)
+    addRowWithPrompt(IRB::Formatter::RESULT_PREFIX, value: colorizedResultValue)
+    updateOutlineView
+  end
+  
+  def receivedException(exception)
+    addRowWithPrompt(EMPTY, value: @colorizationFormatter.exception(exception))
+    updateOutlineView
   end
   
   def receivedOutput(output)
     addRowWithPrompt(EMPTY, value: output)
-    view.outlineView.reloadData
-    editInputCell
+    updateOutlineView
   end
   
   def terminate
@@ -176,9 +122,8 @@ class IRBViewController < NSViewController
   end
   
   def setupIRBForObject(object, binding: binding)
-    @context = IRB::Context.new(object, binding)
-    @context.formatter = IRB::CocoaFormatter.new
-    @output = Output.new(self)
+    @context = IRB::Cocoa::Context.new(self, object, binding)
+    @output = IRB::Cocoa::Output.new(self)
     @completion = IRB::Completion.new(@context)
     
     @thread = Thread.new(self, @context) do |controller, context|
@@ -197,6 +142,11 @@ class IRBViewController < NSViewController
         end
       end
     end
+  end
+  
+  def updateOutlineView
+    view.outlineView.reloadData
+    editInputCell
   end
   
   def editInputCell
