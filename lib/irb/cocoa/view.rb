@@ -5,13 +5,17 @@ class IRBView < NSView
     if init
       @outlineView = NSOutlineView.alloc.init
       @outlineView.headerView = nil
-      @outlineView.columnAutoresizingStyle = NSTableViewLastColumnOnlyAutoresizingStyle
+      # @outlineView.columnAutoresizingStyle = NSTableViewLastColumnOnlyAutoresizingStyle
       @outlineView.selectionHighlightStyle = NSTableViewSelectionHighlightStyleNone
       
       promptColumn = NSTableColumn.alloc.initWithIdentifier("prompt")
       promptColumn.editable = false
       @outlineView.addTableColumn(promptColumn)
-      @outlineView.addTableColumn(NSTableColumn.alloc.initWithIdentifier("value"))
+      
+      valueColumn = NSTableColumn.alloc.initWithIdentifier("value")
+      @outlineView.addTableColumn(valueColumn)
+      @outlineView.outlineTableColumn = valueColumn
+      @outlineView.indentationPerLevel = 0
       
       @scrollView = NSScrollView.alloc.init
       @scrollView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable

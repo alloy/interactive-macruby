@@ -1,5 +1,20 @@
 require 'irb_ext'
 
+class IRBResult
+  attr_reader :object, :string
+  
+  def initWithObject(object, string: stringRepresentation)
+    if init
+      @object, @string = object, stringRepresentation
+      self
+    end
+  end
+  
+  def classDescription
+    NSAttributedString.alloc.initWithString("Class: #{@object.class.name}", attributes: IRBViewController::DEFAULT_ATTRIBUTES)
+  end
+end
+
 class IRBViewController < NSViewController
   DEFAULT_ATTRIBUTES = { NSFontAttributeName => NSFont.fontWithName("Menlo Regular", size: 11) }
   
@@ -41,7 +56,8 @@ class IRBViewController < NSViewController
   
   def receivedResult(result)
     colorizedResultValue = @colorizationFormatter.result(result)
-    addRowWithPrompt(IRB::Formatter::RESULT_PREFIX, value: colorizedResultValue)
+    value = IRBResult.alloc.initWithObject(result, string: colorizedResultValue)
+    addRowWithPrompt(EMPTY, value: value)
     updateOutlineView
   end
   
@@ -97,39 +113,50 @@ class IRBViewController < NSViewController
     if item == nil
       # add one extra which is the input row
       @rows.size + 1
+    else
+      # p item[VALUE]
+      1
     end
   end
   
   def outlineView(outlineView, isItemExpandable: item)
-    false
+    item && item.is_a?(Hash) && item[VALUE].is_a?(IRBResult)
   end
   
   def outlineView(outlineView, child: index, ofItem: item)
+    # p item.is_a?(IRBResult)
+    # p item
     if item == nil
       if index == @rows.size
         :input
       else
         @rows[index]
       end
+    else
+      item[VALUE]
     end
   end
   
   def outlineView(outlineView, objectValueForTableColumn: column, byItem: item)
-    result = if item == :input
-      if column.identifier == PROMPT
-        rightAlignedString(@context.prompt)
-      else
-        ""
-      end
-    elsif item
-      item[column.identifier]
+    result = case item
+    when nil
+      nil
+    when :input
+      rightAlignedString(@context.prompt) if column.identifier == PROMPT
+    when IRBResult
+      item.classDescription if column.identifier == VALUE
+    else
+      value = item[column.identifier]
+      value.is_a?(IRBResult) ? value.string : value
     end
+    
     # make sure the prompt column is still wide enough
-    if column.identifier == PROMPT
+    if result && column.identifier == PROMPT
       width = result.size.width
       column.width = width if width > column.width
     end
-    result
+    
+    result || EMPTY
   end
   
   def outlineView(outlineView, setObjectValue: input, forTableColumn: column, byItem: item)
@@ -138,6 +165,8 @@ class IRBViewController < NSViewController
   end
   
   def outlineView(outlineView, dataCellForTableColumn: column, item: item)
+    # p item.is_a?(IRBResult)
+    # p item
     if column
       if item == :input && column.identifier == VALUE
         @inputCell
