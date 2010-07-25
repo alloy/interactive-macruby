@@ -96,7 +96,7 @@ class IRBViewController < NSViewController
   end
   
   def outlineView(outlineView, objectValueForTableColumn: column, byItem: item)
-    if item == :input
+    result = if item == :input
       if column.identifier == PROMPT
         rightAlignedString(@context.prompt)
       else
@@ -105,6 +105,12 @@ class IRBViewController < NSViewController
     elsif item
       item[column.identifier]
     end
+    # make sure the prompt column is still wide enough
+    if column.identifier == PROMPT
+      width = result.size.width
+      column.width = width if width > column.width
+    end
+    result
   end
   
   def outlineView(outlineView, setObjectValue: input, forTableColumn: column, byItem: item)

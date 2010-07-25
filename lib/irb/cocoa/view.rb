@@ -10,8 +10,6 @@ class IRBView < NSView
       
       promptColumn = NSTableColumn.alloc.initWithIdentifier("prompt")
       promptColumn.editable = false
-      promptColumn.minWidth = 150.0
-      promptColumn.width = 150.0
       @outlineView.addTableColumn(promptColumn)
       @outlineView.addTableColumn(NSTableColumn.alloc.initWithIdentifier("value"))
       
