@@ -17,17 +17,7 @@ class IRBViewController < NSViewController
       @colorizationFormatter = IRB::Cocoa::ColoredFormatter.new
       setupIRBForObject(object, binding: binding)
       
-      font = DEFAULT_ATTRIBUTES[NSFontAttributeName]
-      
-      @resultCell = NSTextFieldCell.alloc.init
-      @resultCell.font = font
-      @resultCell.editable = false
-      
-      @inputCell = NSTextFieldCell.alloc.init
-      @inputCell.font = font
-      @inputCell.editable = true
-      @inputCell.bordered = false
-      @inputCell.focusRingType = NSFocusRingTypeNone
+      setupDataCells
       
       # TODO is this the best way to make the input cell become key?
       performSelector('editInputCell', withObject: nil, afterDelay: 0)
@@ -156,6 +146,20 @@ class IRBViewController < NSViewController
         end
       end
     end
+  end
+  
+  def setupDataCells
+    font = DEFAULT_ATTRIBUTES[NSFontAttributeName]
+    
+    @resultCell = NSTextFieldCell.alloc.init
+    @resultCell.font = font
+    @resultCell.editable = false
+    
+    @inputCell = NSTextFieldCell.alloc.init
+    @inputCell.font = font
+    @inputCell.editable = true
+    @inputCell.bordered = false
+    @inputCell.focusRingType = NSFocusRingTypeNone
   end
   
   def updateOutlineView
