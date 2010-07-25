@@ -17,10 +17,14 @@ class IRBViewController < NSViewController
       @colorizationFormatter = IRB::Cocoa::ColoredFormatter.new
       setupIRBForObject(object, binding: binding)
       
+      font = DEFAULT_ATTRIBUTES[NSFontAttributeName]
+      
       @resultCell = NSTextFieldCell.alloc.init
+      @resultCell.font = font
       @resultCell.editable = false
       
       @inputCell = NSTextFieldCell.alloc.init
+      @inputCell.font = font
       @inputCell.editable = true
       @inputCell.bordered = false
       @inputCell.focusRingType = NSFocusRingTypeNone

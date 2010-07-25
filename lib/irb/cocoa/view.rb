@@ -5,6 +5,7 @@ class IRBView < NSView
     if init
       @outlineView = NSOutlineView.alloc.init
       @outlineView.headerView = nil
+      @outlineView.columnAutoresizingStyle = NSTableViewLastColumnOnlyAutoresizingStyle
       @outlineView.selectionHighlightStyle = NSTableViewSelectionHighlightStyleNone
       
       promptColumn = NSTableColumn.alloc.initWithIdentifier("prompt")
