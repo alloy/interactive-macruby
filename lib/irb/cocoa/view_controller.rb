@@ -90,15 +90,28 @@ module IRB
       def children
         @children ||= [
           classDescriptionNode,
+          superclassDescriptionNode,
           publicMethodsDescriptionNode,
           objcMethodsDescriptionNode,
           instanceVariablesNode,
         ].compact
       end
       
+      # Not shown when +object+ is a Class.
       def classDescriptionNode
-        string = attributedString("Class: #{@object.class.name}")
-        BasicNode.alloc.initWithStringRepresentation(string)
+        unless @object.is_a?(Class)
+          klass = @object.class
+          string = attributedString("Class: #{klass.name}")
+          ResultNode.alloc.initWithObject(klass, stringRepresentation: string)
+        end
+      end
+      
+      # Only shown when +object+ is a Class.
+      def superclassDescriptionNode
+        if @object.is_a?(Class) && klass = @object.superclass
+          string = attributedString("Superclass: #{klass.name}")
+          ResultNode.alloc.initWithObject(klass, stringRepresentation: string)
+        end
       end
       
       def publicMethodsDescriptionNode
