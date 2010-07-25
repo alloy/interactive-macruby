@@ -48,8 +48,10 @@ class IRBViewController < NSViewController
       
       @resultCell = NSTextFieldCell.alloc.init
       @resultCell.editable = false
+      
       @inputCell = NSTextFieldCell.alloc.init
       @inputCell.editable = true
+      @inputCell.focusRingType = NSFocusRingTypeNone
       
       setupContextForObject(object, binding: binding)
       
