@@ -2,7 +2,19 @@ require 'irb_ext'
 
 module IRB
   module Cocoa
+    DEFAULT_ATTRIBUTES = { NSFontAttributeName => NSFont.fontWithName("Menlo Regular", size: 11) }
+    
+    module Helper
+      def attributedString(string)
+        NSAttributedString.alloc.initWithString(string, attributes: DEFAULT_ATTRIBUTES)
+      end
+      module_function :attributedString
+    end
+    
     class BasicNode
+      include Helper
+      
+      EMPTY_STRING = Helper.attributedString("")
       EMPTY_ARRAY = []
       
       attr_reader :string
@@ -14,12 +26,29 @@ module IRB
         end
       end
       
+      def prompt
+        EMPTY_STRING
+      end
+      
       def expandable?
         false
       end
       
       def children
         EMPTY_ARRAY
+      end
+    end
+    
+    class RowNode < BasicNode
+      def initWithPrompt(prompt, stringRepresentation: string)
+        if initWithStringRepresentation(string)
+          @prompt = attributedString(prompt)
+          self
+        end
+      end
+      
+      def prompt
+        @prompt
       end
     end
     
@@ -33,12 +62,6 @@ module IRB
       
       def expandable?
         true
-      end
-      
-      private
-      
-      def attributedString(string)
-        NSAttributedString.alloc.initWithString(string, attributes: IRBViewController::DEFAULT_ATTRIBUTES)
       end
     end
     
@@ -65,14 +88,14 @@ module IRB
       
       def methodsDescriptionNode
         string = attributedString("Methods")
-        ListNode.alloc.initWithObject(@object.public_methods(false), stringRepresentation: string)
+        ListNode.alloc.initWithObject(@object.methods(false), stringRepresentation: string)
       end
     end
   end
 end
 
 class IRBViewController < NSViewController
-  DEFAULT_ATTRIBUTES = { NSFontAttributeName => NSFont.fontWithName("Menlo Regular", size: 11) }
+  include IRB::Cocoa::Helper
   
   PROMPT = "prompt"
   VALUE  = "value"
@@ -111,20 +134,19 @@ class IRBViewController < NSViewController
   end
   
   def receivedResult(result)
-    string = @colorizationFormatter.result(result)
-    value = IRB::Cocoa::ResultNode.alloc.initWithObject(result, stringRepresentation: string)
-    addRowWithPrompt(EMPTY, value: value)
+    @rows << IRB::Cocoa::ResultNode.alloc.initWithObject(result,
+                                   stringRepresentation: @colorizationFormatter.result(result))
     updateOutlineView
   end
   
   def receivedException(exception)
-    addRowWithPrompt(EMPTY, value: @colorizationFormatter.exception(exception))
+    string = @colorizationFormatter.exception(exception)
+    @rows << IRB::Cocoa::RowNode.alloc.initWithStringRepresentation(string)
     updateOutlineView
   end
   
   def receivedOutput(output)
-    value = IRB::Cocoa::BasicNode.alloc.initWithStringRepresentation(output)
-    addRowWithPrompt(EMPTY, value: value)
+    @rows << IRB::Cocoa::RowNode.alloc.initWithStringRepresentation(output)
     updateOutlineView
   end
   
@@ -167,7 +189,6 @@ class IRBViewController < NSViewController
   # outline view data source and delegate methods
   
   def outlineView(outlineView, numberOfChildrenOfItem: item)
-    # p item
     if item == nil
       # add one extra which is the input row
       @rows.size + 1
@@ -177,7 +198,6 @@ class IRBViewController < NSViewController
   end
   
   def outlineView(outlineView, isItemExpandable: item)
-    # p item
     case item
     when IRB::Cocoa::BasicNode
       item.expandable?
@@ -185,12 +205,9 @@ class IRBViewController < NSViewController
   end
   
   def outlineView(outlineView, child: index, ofItem: item)
-    # p item
     if item == nil
       if index == @rows.size
         :input
-      elsif item.is_a?(Hash)
-        item[VALUE]
       else
         @rows[index]
       end
@@ -200,49 +217,12 @@ class IRBViewController < NSViewController
   end
   
   def outlineView(outlineView, objectValueForTableColumn: column, byItem: item)
-    # p item
-    # result = case item
-    # when nil then nil
-    # when :input
-    #   rightAlignedString(@context.prompt) if column.identifier == PROMPT
-    #   
-    # when IRB::Cocoa::BasicNode
-    #   item.string if column.identifier == VALUE
-    #   
-    # else
-    #   value = item[column.identifier]
-    #   column.identifier == PROMPT ? value : value.string
-    # end
-    
-    if item
-      result = if column.identifier == PROMPT
-        p item
-        case item
-        when :input
-          rightAlignedString(@context.prompt)
-        when Hash
-          p item
-          item[PROMPT]
-        end
-      else
-        case item
-        when :input
-          EMPTY
-        when IRB::Cocoa::BasicNode
-          item.string
-        when Hash
-          item[VALUE].string
-        end
-      end
+    result = case item
+    when :input
+      column.identifier == PROMPT ? attributedString(@context.prompt) : EMPTY
+    when IRB::Cocoa::BasicNode
+      column.identifier == PROMPT ? item.prompt : item.string
     end
-    
-    # result = case item
-    # when nil
-    #   value = item[column.identifier]
-    #   column.identifier == PROMPT ? value : value.string
-    # when :input
-    #   column.identifier == PROMPT ? rightAlignedString(@context.prompt) : EMPTY
-    # when 
     
     # make sure the prompt column is still wide enough
     if result && column.identifier == PROMPT
@@ -254,13 +234,12 @@ class IRBViewController < NSViewController
   end
   
   def outlineView(outlineView, setObjectValue: input, forTableColumn: column, byItem: item)
-    value = IRB::Cocoa::BasicNode.alloc.initWithStringRepresentation(input)
-    addRowWithPrompt(@context.prompt, value: value)
+    @rows << IRB::Cocoa::RowNode.alloc.initWithPrompt(@context.prompt,
+                                stringRepresentation: input)
     processInput(input)
   end
   
   def outlineView(outlineView, dataCellForTableColumn: column, item: item)
-    # p item
     if column
       if item == :input && column.identifier == VALUE
         @inputCell
@@ -307,7 +286,7 @@ class IRBViewController < NSViewController
   end
   
   def setupDataCells
-    font = DEFAULT_ATTRIBUTES[NSFontAttributeName]
+    font = IRB::Cocoa::DEFAULT_ATTRIBUTES[NSFontAttributeName]
     
     @resultCell = NSTextFieldCell.alloc.init
     @resultCell.font = font
@@ -335,17 +314,6 @@ class IRBViewController < NSViewController
                                              object: window)
     end
     view.outlineView.editColumn(1, row: @rows.size, withEvent: nil, select: false)
-  end
-  
-  # TODO create immutable versions
-  def rightAlignedString(string)
-    attributedString = NSMutableAttributedString.alloc.initWithString(string, attributes: DEFAULT_ATTRIBUTES)
-    attributedString.setAlignment(NSRightTextAlignment, range:NSMakeRange(0, string.size))
-    attributedString
-  end
-  
-  def addRowWithPrompt(prompt, value: value)
-    @rows << { PROMPT => rightAlignedString(prompt), VALUE => value }
   end
 end
 

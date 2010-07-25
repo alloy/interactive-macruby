@@ -124,7 +124,7 @@ module IRB
       
       def colorize_token(type, token)
         if color = color(type)
-          attributes = IRBViewController::DEFAULT_ATTRIBUTES.merge(NSForegroundColorAttributeName => COLORS[color])
+          attributes = IRB::Cocoa::DEFAULT_ATTRIBUTES.merge(NSForegroundColorAttributeName => COLORS[color])
           NSAttributedString.alloc.initWithString(token, attributes: attributes)
         else
           NSAttributedString.alloc.initWithString(token)
