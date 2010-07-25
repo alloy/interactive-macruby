@@ -14,6 +14,9 @@ class IRBViewController < NSViewController
       @rows = []
       @delegate = delegate
       
+      @history = []
+      @currentHistoryIndex = 0
+      
       @colorizationFormatter = IRB::Cocoa::ColoredFormatter.new
       setupIRBForObject(object, binding: binding)
       
@@ -56,10 +59,33 @@ class IRBViewController < NSViewController
     @delegate.send(:irbViewControllerTerminated, self)
   end
   
-  # delegate method of the current input cell
+  # delegate methods of the input cell
   
   def control(control, textView: textView, completions: completions, forPartialWordRange: range, indexOfSelectedItem: item)
     @completion.call(textView.string).map { |s| s[range.location..-1] }
+  end
+  
+  def control(control, textView: textView, doCommandBySelector: selector)
+    case selector
+    when :"moveUp:"
+      if @currentHistoryIndex > 0
+        @currentHistoryIndex -= 1
+        textView.string = @history[@currentHistoryIndex]
+      else
+        NSBeep()
+      end
+    when :"moveDown:"
+      if @currentHistoryIndex < @history.size
+        @currentHistoryIndex += 1
+        line = @history[@currentHistoryIndex]
+        textView.string = line ? line : EMPTY
+      else
+        NSBeep()
+      end
+    else
+      return false
+    end
+    true
   end
   
   # outline view data source and delegate methods
@@ -120,7 +146,13 @@ class IRBViewController < NSViewController
   
   private
   
+  def addToHistory(line)
+    @history << line
+    @currentHistoryIndex = @history.size
+  end
+  
   def processInput(input)
+    addToHistory(input)
     @thread[:input] = input
     @thread.run
   end
