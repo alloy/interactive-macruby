@@ -152,7 +152,7 @@ class IRBViewController < NSViewController
   
   def outlineView(outlineView, setObjectValue: input, forTableColumn: column, byItem: item)
     addRowWithPrompt(@context.prompt, value: input)
-    @thread[:input] = input
+    processInput(input)
   end
   
   # outline view delegate methods
@@ -169,6 +169,11 @@ class IRBViewController < NSViewController
   
   private
   
+  def processInput(input)
+    @thread[:input] = input
+    @thread.run
+  end
+  
   def setupIRBForObject(object, binding: binding)
     @context = IRB::Context.new(object, binding)
     @context.formatter = IRB::CocoaFormatter.new
@@ -177,6 +182,7 @@ class IRBViewController < NSViewController
     
     @thread = Thread.new(self, @context) do |controller, context|
       IRB::Driver.current = controller
+      Thread.stop # stop now, there's no input yet
       
       loop do
         if input = Thread.current[:input]
@@ -184,8 +190,9 @@ class IRBViewController < NSViewController
           unless context.process_line(input)
             controller.performSelectorOnMainThread("terminate",
                                         withObject: nil,
-                                     waitUntilDone: true)
+                                     waitUntilDone: false)
           end
+          Thread.stop # done processing, stop and await new input
         end
       end
     end
