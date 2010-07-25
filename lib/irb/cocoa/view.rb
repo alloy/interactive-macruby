@@ -11,7 +11,7 @@ class IRBView < NSView
       promptColumn.minWidth = 150.0
       promptColumn.width = 150.0
       @outlineView.addTableColumn(promptColumn)
-      @outlineView.addTableColumn(NSTableColumn.alloc.initWithIdentifier("result"))
+      @outlineView.addTableColumn(NSTableColumn.alloc.initWithIdentifier("value"))
       
       scrollView = NSScrollView.alloc.init
       scrollView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable

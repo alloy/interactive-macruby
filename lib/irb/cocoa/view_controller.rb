@@ -33,6 +33,9 @@ end
 $stdout = IRB::Driver::OutputRedirector.new
 
 class IRBViewController < NSViewController
+  PROMPT = "prompt"
+  VALUE  = "value"
+  
   def initWithObject(object, binding: binding)
     if init
       @rows = []
@@ -53,7 +56,7 @@ class IRBViewController < NSViewController
   end
   
   def receivedOutput(output)
-    @rows << { "prompt" => rightAlignedString("=>"), "result" => output }
+    addRowWithPrompt(IRB::Formatter::RESULT_PREFIX, value: output)
     view.outlineView.reloadData
   end
   
@@ -82,7 +85,7 @@ class IRBViewController < NSViewController
   
   def outlineView(outlineView, objectValueForTableColumn: column, byItem: item)
     if item == :input
-      if column.identifier == "prompt"
+      if column.identifier == PROMPT
         rightAlignedString(@context.prompt)
       else
         ""
@@ -93,7 +96,7 @@ class IRBViewController < NSViewController
   end
   
   def outlineView(outlineView, setObjectValue: input, forTableColumn: column, byItem: item)
-    @rows << { "prompt" => rightAlignedString(@context.prompt), "result" => input }
+    addRowWithPrompt(@context.prompt, value: input)
     @thread[:input] = input
   end
   
@@ -131,5 +134,9 @@ class IRBViewController < NSViewController
     attributedString = NSMutableAttributedString.alloc.initWithString(string)
     attributedString.setAlignment(NSRightTextAlignment, range:NSMakeRange(0, string.size))
     attributedString
+  end
+  
+  def addRowWithPrompt(prompt, value: value)
+    @rows << { PROMPT => rightAlignedString(prompt), VALUE => value }
   end
 end
