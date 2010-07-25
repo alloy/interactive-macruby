@@ -5,9 +5,13 @@ class IRBWindowController < NSWindowController
                                        backing: NSBackingStoreBuffered,
                                          defer: false)
     if initWithWindow(window)
-      @viewController = IRBViewController.alloc.initWithObject(object, binding: binding)
+      @viewController = IRBViewController.alloc.initWithObject(object, binding: binding, delegate: self)
       window.contentView = @viewController.view
       self
     end
+  end
+  
+  def irbViewControllerTerminated(viewController)
+    window.close
   end
 end

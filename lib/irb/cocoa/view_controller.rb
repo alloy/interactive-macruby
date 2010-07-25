@@ -33,9 +33,10 @@ class IRBViewController < NSViewController
   
   attr_reader :output
   
-  def initWithObject(object, binding: binding)
+  def initWithObject(object, binding: binding, delegate: delegate)
     if init
       @rows = []
+      @delegate = delegate
       
       @resultCell = NSTextFieldCell.alloc.init
       @resultCell.editable = false
@@ -60,6 +61,10 @@ class IRBViewController < NSViewController
     addRowWithPrompt(IRB::Formatter::RESULT_PREFIX, value: output)
     view.outlineView.reloadData
     editInputCell
+  end
+  
+  def terminate
+    @delegate.send(:irbViewControllerTerminated, self)
   end
   
   # outline view data source methods
@@ -127,7 +132,11 @@ class IRBViewController < NSViewController
       loop do
         if input = Thread.current[:input]
           Thread.current[:input] = nil
-          context.process_line(input)
+          unless context.process_line(input)
+            controller.performSelectorOnMainThread("terminate",
+                                        withObject: nil,
+                                     waitUntilDone: true)
+          end
         end
       end
     end
@@ -159,6 +168,7 @@ module Kernel
   def irb(object, binding = nil)
     controller = IRBWindowController.alloc.initWithObject(object, binding: binding)
     controller.showWindow(self)
+    nil
   end
   
   private :irb
