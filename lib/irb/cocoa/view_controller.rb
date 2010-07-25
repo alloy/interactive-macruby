@@ -51,7 +51,7 @@ class IRBViewController < NSViewController
       @rows = []
       @delegate = delegate
       
-      setupContextForObject(object, binding: binding)
+      setupIRBForObject(object, binding: binding)
       
       @resultCell = NSTextFieldCell.alloc.init
       @resultCell.editable = false
@@ -61,6 +61,7 @@ class IRBViewController < NSViewController
       @inputCell.bordered = false
       @inputCell.focusRingType = NSFocusRingTypeNone
       
+      # TODO is this the best way to make the input cell become key?
       performSelector('editInputCell', withObject: nil, afterDelay: 0)
       
       self
@@ -82,12 +83,7 @@ class IRBViewController < NSViewController
   end
   
   def control(control, textView: textView, completions: completions, forPartialWordRange: range, indexOfSelectedItem: item)
-    # p control, textView, completions, range, item
-    source = textView.string
-    p source
-    result = @completion.call(source) #.map { |s| s[source.size-1..-1] }
-    p result
-    result
+    @completion.call(textView.string).map { |s| s[range.location..-1] }
   end
   
   # outline view data source methods
@@ -144,7 +140,7 @@ class IRBViewController < NSViewController
   
   private
   
-  def setupContextForObject(object, binding: binding)
+  def setupIRBForObject(object, binding: binding)
     @context = IRB::Context.new(object, binding)
     @context.formatter = IRB::CocoaFormatter.new
     @output = Output.new(self)
