@@ -1,11 +1,32 @@
 require 'irb'
 require 'irb/driver'
 require 'irb/ext/completion'
+require 'irb/ext/colorize'
 
 module IRB
+  # class CocoaFormatter < ColoredFormatter
+  #   def result(object)
+  #     string = inspect_object(object)
+  #     attributedString = NSMutableAttributedString.alloc.initWithString(string)
+  #     # p attributedString
+  #     attributedString.addAttributes({ NSForegroundColorAttributeName => NSColor.redColor }, range: NSMakeRange(0, string.size))
+  #     attributedString
+  #   end
+  # end
+  
   class CocoaFormatter < Formatter
     def result(object)
       inspect_object(object)
+    end
+  end
+  
+  class CocoaColoredFormatter < ColoredFormatter
+    def colorize_token(type, token)
+      if color = color(type)
+        "#{Color.escape(color)}#{token}#{Color::CLEAR}"
+      else
+        token
+      end
     end
   end
 end
@@ -51,6 +72,7 @@ class IRBViewController < NSViewController
       @rows = []
       @delegate = delegate
       
+      @colorizationFormatter = IRB::CocoaColoredFormatter.new
       setupIRBForObject(object, binding: binding)
       
       @resultCell = NSTextFieldCell.alloc.init
@@ -72,8 +94,15 @@ class IRBViewController < NSViewController
     self.view = IRBView.alloc.initWithViewController(self)
   end
   
+  def colorize(string)
+    p @colorizationFormatter.colorize(string)
+    attributedString = NSMutableAttributedString.alloc.initWithString(string)
+    attributedString.addAttributes({ NSForegroundColorAttributeName => NSColor.redColor }, range: NSMakeRange(0, string.size))
+    attributedString
+  end
+  
   def receivedOutput(output)
-    addRowWithPrompt(IRB::Formatter::RESULT_PREFIX, value: output)
+    addRowWithPrompt(IRB::Formatter::RESULT_PREFIX, value: colorize(output))
     view.outlineView.reloadData
     editInputCell
   end
