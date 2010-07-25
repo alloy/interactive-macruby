@@ -1,10 +1,23 @@
 require 'irb'
 require 'irb/driver'
+require 'irb/ext/completion'
 
 module IRB
   class CocoaFormatter < Formatter
     def result(object)
       inspect_object(object)
+    end
+  end
+end
+
+module IRB
+  class Completion
+    def initialize(context = nil)
+      @context = context
+    end
+    
+    def context
+      @context || IRB::Driver.current.context
     end
   end
 end
@@ -38,6 +51,8 @@ class IRBViewController < NSViewController
       @rows = []
       @delegate = delegate
       
+      setupContextForObject(object, binding: binding)
+      
       @resultCell = NSTextFieldCell.alloc.init
       @resultCell.editable = false
       
@@ -46,7 +61,6 @@ class IRBViewController < NSViewController
       @inputCell.bordered = false
       @inputCell.focusRingType = NSFocusRingTypeNone
       
-      setupContextForObject(object, binding: binding)
       performSelector('editInputCell', withObject: nil, afterDelay: 0)
       
       self
@@ -65,6 +79,15 @@ class IRBViewController < NSViewController
   
   def terminate
     @delegate.send(:irbViewControllerTerminated, self)
+  end
+  
+  def control(control, textView: textView, completions: completions, forPartialWordRange: range, indexOfSelectedItem: item)
+    # p control, textView, completions, range, item
+    source = textView.string
+    p source
+    result = @completion.call(source) #.map { |s| s[source.size-1..-1] }
+    p result
+    result
   end
   
   # outline view data source methods
@@ -111,7 +134,7 @@ class IRBViewController < NSViewController
   
   def outlineView(outlineView, dataCellForTableColumn: column, item: item)
     if column
-      if item == :input
+      if item == :input && column.identifier == VALUE
         @inputCell
       else
         @resultCell
@@ -125,6 +148,7 @@ class IRBViewController < NSViewController
     @context = IRB::Context.new(object, binding)
     @context.formatter = IRB::CocoaFormatter.new
     @output = Output.new(self)
+    @completion = IRB::Completion.new(@context)
     
     @thread = Thread.new(self, @context) do |controller, context|
       IRB::Driver.current = controller
