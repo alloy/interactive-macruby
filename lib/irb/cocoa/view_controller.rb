@@ -78,7 +78,7 @@ module IRB
         @children ||= [
           classDescriptionNode,
           methodsDescriptionNode,
-        ]
+        ].compact
       end
       
       def classDescriptionNode
@@ -87,8 +87,11 @@ module IRB
       end
       
       def methodsDescriptionNode
-        string = attributedString("Methods")
-        ListNode.alloc.initWithObject(@object.methods(false), stringRepresentation: string)
+        methods = @object.methods(false)
+        unless methods.empty?
+          string = attributedString("Methods")
+          ListNode.alloc.initWithObject(methods, stringRepresentation: string)
+        end
       end
     end
   end
