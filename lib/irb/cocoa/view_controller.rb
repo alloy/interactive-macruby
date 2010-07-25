@@ -11,12 +11,18 @@ module IRB
   module Driver
     class Cocoa
       class Output
+        NEW_LINE = "\n"
+        
         def initialize(viewController)
           @controller = viewController
         end
         
         def write(string)
-          @controller.performSelectorOnMainThread("receivedOutput:", withObject: string, waitUntilDone: false)
+          unless string == NEW_LINE
+            @controller.performSelectorOnMainThread("receivedOutput:",
+                                        withObject: string,
+                                     waitUntilDone: false)
+          end
         end
       end
       
