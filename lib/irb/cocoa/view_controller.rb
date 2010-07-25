@@ -1,17 +1,73 @@
 require 'irb_ext'
 
-class IRBResult
-  attr_reader :object, :string
-  
-  def initWithObject(object, string: stringRepresentation)
-    if init
-      @object, @string = object, stringRepresentation
-      self
+module IRB
+  module Cocoa
+    class BasicNode
+      EMPTY_ARRAY = []
+      
+      attr_reader :string
+      
+      def initWithStringRepresentation(string)
+        if init
+          @string = string
+          self
+        end
+      end
+      
+      def expandable?
+        false
+      end
+      
+      def children
+        EMPTY_ARRAY
+      end
     end
-  end
-  
-  def classDescription
-    NSAttributedString.alloc.initWithString("Class: #{@object.class.name}", attributes: IRBViewController::DEFAULT_ATTRIBUTES)
+    
+    class ExpandableNode < BasicNode
+      def initWithObject(object, stringRepresentation: string)
+        if initWithStringRepresentation(string)
+          @object = object
+          self
+        end
+      end
+      
+      def expandable?
+        true
+      end
+      
+      private
+      
+      def attributedString(string)
+        NSAttributedString.alloc.initWithString(string, attributes: IRBViewController::DEFAULT_ATTRIBUTES)
+      end
+    end
+    
+    class ListNode < ExpandableNode
+      def children
+        @children ||= @object.map do |x|
+          BasicNode.alloc.initWithStringRepresentation(attributedString(x))
+        end
+      end
+    end
+    
+    class ResultNode < ExpandableNode
+      def children
+        @children ||= [
+          classDescriptionNode,
+          methodsDescriptionNode,
+        ]
+      end
+      
+      def classDescriptionNode
+        string = attributedString("Class: #{@object.class.name}")
+        BasicNode.alloc.initWithStringRepresentation(string)
+      end
+      
+      def methodsDescriptionNode
+        string = attributedString("Methods")
+        ListNode.alloc.initWithObject(@object.public_methods(false), stringRepresentation: string)
+      end
+    end
   end
 end
 
@@ -55,8 +111,8 @@ class IRBViewController < NSViewController
   end
   
   def receivedResult(result)
-    colorizedResultValue = @colorizationFormatter.result(result)
-    value = IRBResult.alloc.initWithObject(result, string: colorizedResultValue)
+    string = @colorizationFormatter.result(result)
+    value = IRB::Cocoa::ResultNode.alloc.initWithObject(result, stringRepresentation: string)
     addRowWithPrompt(EMPTY, value: value)
     updateOutlineView
   end
@@ -67,7 +123,8 @@ class IRBViewController < NSViewController
   end
   
   def receivedOutput(output)
-    addRowWithPrompt(EMPTY, value: output)
+    value = IRB::Cocoa::BasicNode.alloc.initWithStringRepresentation(output)
+    addRowWithPrompt(EMPTY, value: value)
     updateOutlineView
   end
   
@@ -110,45 +167,82 @@ class IRBViewController < NSViewController
   # outline view data source and delegate methods
   
   def outlineView(outlineView, numberOfChildrenOfItem: item)
+    # p item
     if item == nil
       # add one extra which is the input row
       @rows.size + 1
     else
-      # p item[VALUE]
-      1
+      item.children.size
     end
   end
   
   def outlineView(outlineView, isItemExpandable: item)
-    item && item.is_a?(Hash) && item[VALUE].is_a?(IRBResult)
+    # p item
+    case item
+    when IRB::Cocoa::BasicNode
+      item.expandable?
+    end
   end
   
   def outlineView(outlineView, child: index, ofItem: item)
-    # p item.is_a?(IRBResult)
     # p item
     if item == nil
       if index == @rows.size
         :input
+      elsif item.is_a?(Hash)
+        item[VALUE]
       else
         @rows[index]
       end
     else
-      item[VALUE]
+      item.children[index]
     end
   end
   
   def outlineView(outlineView, objectValueForTableColumn: column, byItem: item)
-    result = case item
-    when nil
-      nil
-    when :input
-      rightAlignedString(@context.prompt) if column.identifier == PROMPT
-    when IRBResult
-      item.classDescription if column.identifier == VALUE
-    else
-      value = item[column.identifier]
-      value.is_a?(IRBResult) ? value.string : value
+    # p item
+    # result = case item
+    # when nil then nil
+    # when :input
+    #   rightAlignedString(@context.prompt) if column.identifier == PROMPT
+    #   
+    # when IRB::Cocoa::BasicNode
+    #   item.string if column.identifier == VALUE
+    #   
+    # else
+    #   value = item[column.identifier]
+    #   column.identifier == PROMPT ? value : value.string
+    # end
+    
+    if item
+      result = if column.identifier == PROMPT
+        p item
+        case item
+        when :input
+          rightAlignedString(@context.prompt)
+        when Hash
+          p item
+          item[PROMPT]
+        end
+      else
+        case item
+        when :input
+          EMPTY
+        when IRB::Cocoa::BasicNode
+          item.string
+        when Hash
+          item[VALUE].string
+        end
+      end
     end
+    
+    # result = case item
+    # when nil
+    #   value = item[column.identifier]
+    #   column.identifier == PROMPT ? value : value.string
+    # when :input
+    #   column.identifier == PROMPT ? rightAlignedString(@context.prompt) : EMPTY
+    # when 
     
     # make sure the prompt column is still wide enough
     if result && column.identifier == PROMPT
@@ -160,12 +254,12 @@ class IRBViewController < NSViewController
   end
   
   def outlineView(outlineView, setObjectValue: input, forTableColumn: column, byItem: item)
-    addRowWithPrompt(@context.prompt, value: input)
+    value = IRB::Cocoa::BasicNode.alloc.initWithStringRepresentation(input)
+    addRowWithPrompt(@context.prompt, value: value)
     processInput(input)
   end
   
   def outlineView(outlineView, dataCellForTableColumn: column, item: item)
-    # p item.is_a?(IRBResult)
     # p item
     if column
       if item == :input && column.identifier == VALUE

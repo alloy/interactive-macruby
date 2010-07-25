@@ -15,7 +15,7 @@ class IRBView < NSView
       valueColumn = NSTableColumn.alloc.initWithIdentifier("value")
       @outlineView.addTableColumn(valueColumn)
       @outlineView.outlineTableColumn = valueColumn
-      @outlineView.indentationPerLevel = 0
+      @outlineView.indentationPerLevel = 14
       
       @scrollView = NSScrollView.alloc.init
       @scrollView.hasVerticalScroller = true
