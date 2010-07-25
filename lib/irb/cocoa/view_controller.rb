@@ -188,6 +188,7 @@ class IRBViewController < NSViewController
     
     @resultCell = NSTextFieldCell.alloc.init
     @resultCell.font = font
+    # @resultCell.selectable = true
     @resultCell.editable = false
     
     @inputCell = NSTextFieldCell.alloc.init
