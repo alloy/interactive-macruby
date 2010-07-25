@@ -18,8 +18,13 @@ class IRBView < NSView
       @outlineView.indentationPerLevel = 0
       
       @scrollView = NSScrollView.alloc.init
+      @scrollView.hasVerticalScroller = true
+      @scrollView.hasHorizontalScroller = true
+      @scrollView.autohidesScrollers = true
+      
       @scrollView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable
       @scrollView.documentView = @outlineView
+      
       addSubview(@scrollView)
       
       self.viewController = viewController
