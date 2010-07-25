@@ -89,7 +89,9 @@ module IRB
     class ResultNode < ExpandableNode
       def children
         @children ||= [
+          modTypeNode,
           classDescriptionNode,
+          ancestorsDescriptionNode,
           publicMethodsDescriptionNode,
           objcMethodsDescriptionNode,
           instanceVariablesNode,
@@ -106,6 +108,24 @@ module IRB
           string = attributedString("Class: #{klass.name}")
         end
         ResultNode.alloc.initWithObject(klass, stringRepresentation: string) if klass
+      end
+      
+      def modTypeNode
+        if @object.is_a?(Module)
+          string = attributedString("Type: #{@object.class == Class ? 'Class' : 'Module'}")
+          BasicNode.alloc.initWithStringRepresentation(string)
+        end
+      end
+      
+      def ancestorsDescriptionNode
+        if @object.is_a?(Class)
+          BlockListNode.alloc.initWithBlockAndStringRepresentation(attributedString("Ancestors")) do
+            @object.ancestors.map do |ancestor|
+              ResultNode.alloc.initWithObject(ancestor,
+                        stringRepresentation: attributedString(ancestor.name))
+            end
+          end
+        end
       end
       
       def publicMethodsDescriptionNode
@@ -127,8 +147,7 @@ module IRB
       def instanceVariablesNode
         variables = @object.instance_variables
         unless variables.empty?
-          string = attributedString("Instance variables")
-          BlockListNode.alloc.initWithBlockAndStringRepresentation(string) do
+          BlockListNode.alloc.initWithBlockAndStringRepresentation(attributedString("Instance variables")) do
             variables.map do |variable|
               ResultNode.alloc.initWithObject(@object.instance_variable_get(variable),
                         stringRepresentation: attributedString(variable))
