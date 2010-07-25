@@ -64,6 +64,7 @@ class IRBViewController < NSViewController
   
   PROMPT = "prompt"
   VALUE  = "value"
+  EMPTY  = ""
   
   attr_reader :output
   
@@ -102,7 +103,7 @@ class IRBViewController < NSViewController
   end
   
   def receivedOutput(output)
-    addRowWithPrompt(IRB::Formatter::RESULT_PREFIX, value: colorize(output))
+    addRowWithPrompt(EMPTY, value: output)
     view.outlineView.reloadData
     editInputCell
   end
