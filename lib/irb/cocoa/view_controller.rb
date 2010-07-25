@@ -66,7 +66,10 @@ class IRBViewController < NSViewController
   end
   
   def control(control, textView: textView, doCommandBySelector: selector)
+    # p selector
     case selector
+    when :"insertTab:"
+      textView.complete(self)
     when :"moveUp:"
       if @currentHistoryIndex > 0
         @currentHistoryIndex -= 1
