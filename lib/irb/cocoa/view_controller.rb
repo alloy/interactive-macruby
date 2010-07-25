@@ -7,40 +7,31 @@ module IRB
       inspect_object(object)
     end
   end
-  
-  module Driver
-    class Cocoa
-      class Output
-        NEW_LINE = "\n"
-        
-        def initialize(viewController)
-          @controller = viewController
-        end
-        
-        def write(string)
-          unless string == NEW_LINE
-            @controller.performSelectorOnMainThread("receivedOutput:",
-                                        withObject: string,
-                                     waitUntilDone: false)
-          end
-        end
-      end
-      
-      attr_reader :output
-      
-      def initialize(viewController)
-        @controller = viewController
-        @output = Output.new(viewController)
-      end
-    end
-  end
 end
 
 $stdout = IRB::Driver::OutputRedirector.new
 
 class IRBViewController < NSViewController
+  class Output
+    NEW_LINE = "\n"
+    
+    def initialize(viewController)
+      @controller = viewController
+    end
+    
+    def write(string)
+      unless string == NEW_LINE
+        @controller.performSelectorOnMainThread("receivedOutput:",
+                                    withObject: string,
+                                 waitUntilDone: false)
+      end
+    end
+  end
+  
   PROMPT = "prompt"
   VALUE  = "value"
+  
+  attr_reader :output
   
   def initWithObject(object, binding: binding)
     if init
@@ -128,14 +119,15 @@ class IRBViewController < NSViewController
   def setupContextForObject(object, binding: binding)
     @context = IRB::Context.new(object, binding)
     @context.formatter = IRB::CocoaFormatter.new
-    @driver = IRB::Driver::Cocoa.new(self)
+    @output = Output.new(self)
     
-    @thread = Thread.new do
-      IRB::Driver.current = @driver
+    @thread = Thread.new(self, @context) do |controller, context|
+      IRB::Driver.current = controller
+      
       loop do
         if input = Thread.current[:input]
           Thread.current[:input] = nil
-          @context.process_line(input)
+          context.process_line(input)
         end
       end
     end
