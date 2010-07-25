@@ -1,6 +1,8 @@
 require 'irb_ext'
 
 class IRBViewController < NSViewController
+  DEFAULT_ATTRIBUTES = { NSFontAttributeName => NSFont.fontWithName("Menlo Regular", size: 11) }
+  
   PROMPT = "prompt"
   VALUE  = "value"
   EMPTY  = ""
@@ -164,7 +166,7 @@ class IRBViewController < NSViewController
   
   # TODO create immutable versions
   def rightAlignedString(string)
-    attributedString = NSMutableAttributedString.alloc.initWithString(string)
+    attributedString = NSMutableAttributedString.alloc.initWithString(string, attributes: DEFAULT_ATTRIBUTES)
     attributedString.setAlignment(NSRightTextAlignment, range:NSMakeRange(0, string.size))
     attributedString
   end
