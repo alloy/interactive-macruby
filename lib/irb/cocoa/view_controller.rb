@@ -34,6 +34,8 @@ class IRBViewController < NSViewController
     self.view = IRBView.alloc.initWithViewController(self)
   end
   
+  # context callback methods
+  
   def needsMoreInput
     updateOutlineView
   end
@@ -58,11 +60,13 @@ class IRBViewController < NSViewController
     @delegate.send(:irbViewControllerTerminated, self)
   end
   
+  # delegate method of the current input cell
+  
   def control(control, textView: textView, completions: completions, forPartialWordRange: range, indexOfSelectedItem: item)
     @completion.call(textView.string).map { |s| s[range.location..-1] }
   end
   
-  # outline view data source methods
+  # outline view data source and delegate methods
   
   def outlineView(outlineView, numberOfChildrenOfItem: item)
     if item == nil
@@ -101,8 +105,6 @@ class IRBViewController < NSViewController
     addRowWithPrompt(@context.prompt, value: input)
     processInput(input)
   end
-  
-  # outline view delegate methods
   
   def outlineView(outlineView, dataCellForTableColumn: column, item: item)
     if column
@@ -160,6 +162,7 @@ class IRBViewController < NSViewController
     view.outlineView.editColumn(1, row: @rows.size, withEvent: nil, select: false)
   end
   
+  # TODO create immutable versions
   def rightAlignedString(string)
     attributedString = NSMutableAttributedString.alloc.initWithString(string)
     attributedString.setAlignment(NSRightTextAlignment, range:NSMakeRange(0, string.size))
