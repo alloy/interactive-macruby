@@ -73,11 +73,25 @@ module IRB
       end
     end
     
+    class BlockListNode < ExpandableNode
+      def initWithBlockAndStringRepresentation(string, &block)
+        if initWithStringRepresentation(string)
+          @block = block
+          self
+        end
+      end
+      
+      def children
+        @children ||= @block.call
+      end
+    end
+    
     class ResultNode < ExpandableNode
       def children
         @children ||= [
           classDescriptionNode,
           methodsDescriptionNode,
+          instanceVariablesNode,
         ].compact
       end
       
@@ -91,6 +105,19 @@ module IRB
         unless methods.empty?
           string = attributedString("Methods")
           ListNode.alloc.initWithObject(methods, stringRepresentation: string)
+        end
+      end
+      
+      def instanceVariablesNode
+        variables = @object.instance_variables
+        unless variables.empty?
+          string = attributedString("Instance variables")
+          BlockListNode.alloc.initWithBlockAndStringRepresentation(string) do
+            variables.map do |variable|
+              ResultNode.alloc.initWithObject(@object.instance_variable_get(variable),
+                        stringRepresentation: attributedString(variable))
+            end
+          end
         end
       end
     end
