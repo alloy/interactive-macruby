@@ -90,7 +90,8 @@ module IRB
       def children
         @children ||= [
           classDescriptionNode,
-          methodsDescriptionNode,
+          publicMethodsDescriptionNode,
+          objcMethodsDescriptionNode,
           instanceVariablesNode,
         ].compact
       end
@@ -100,10 +101,18 @@ module IRB
         BasicNode.alloc.initWithStringRepresentation(string)
       end
       
-      def methodsDescriptionNode
+      def publicMethodsDescriptionNode
         methods = @object.methods(false)
         unless methods.empty?
-          string = attributedString("Methods")
+          string = attributedString("Public methods")
+          ListNode.alloc.initWithObject(methods, stringRepresentation: string)
+        end
+      end
+      
+      def objcMethodsDescriptionNode
+        methods = @object.methods(false, true) - @object.methods(false)
+        unless methods.empty?
+          string = attributedString("Objective-C methods")
           ListNode.alloc.initWithObject(methods, stringRepresentation: string)
         end
       end
