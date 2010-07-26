@@ -42,6 +42,10 @@ module IRB
       def children
         EMPTY_ARRAY
       end
+
+      def ==(other)
+        other.class == self.class && other.prefix == prefix && other.stringValue == stringValue
+      end
     end
 
     class ExpandableNode < BasicNode
@@ -61,9 +65,7 @@ module IRB
     
     class ListNode < ExpandableNode
       def children
-        @children ||= @object.map do |x|
-          BasicNode.alloc.initWithStringRepresentation(attributedString(x))
-        end
+        @children ||= @object.map { |s| BasicNode.alloc.initWithStringValue(s) }
       end
     end
     

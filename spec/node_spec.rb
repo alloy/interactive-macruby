@@ -3,8 +3,14 @@ require "mspec"
 $:.unshift File.expand_path("../../lib", __FILE__)
 require "irb/cocoa/node"
 
-describe :basic_node, :shared => true do
-  it "returns an attributed string as prefix" do
+include IRB::Cocoa
+
+describe "BasicNode" do
+  before do
+    @node = BasicNode.alloc.initWithStringValue("42")
+  end
+
+    it "returns an attributed string as prefix" do
     @node.prefix.is_a?(NSAttributedString).should == true
   end
 
@@ -23,14 +29,6 @@ describe :basic_node, :shared => true do
   it "returns an empty array as children" do
     @node.children.should == []
   end
-end
-
-describe "BasicNode" do
-  extend IRB::Cocoa
-
-  before do
-    @node = BasicNode.alloc.initWithStringValue("42")
-  end
 
   it "is not expandable" do
     @node.expandable?.should == false
@@ -42,8 +40,6 @@ describe "BasicNode" do
     @node.prefix.string.should == "irb(main)>"
     @node.stringValue.string.should == "42"
   end
-
-  it_behaves_like :basic_node, nil
 end
 
 describe "ExpandableNode" do
@@ -52,7 +48,9 @@ describe "ExpandableNode" do
     @node = ExpandableNode.alloc.initWithObject(@object, stringValue: "42")
   end
 
-  it_behaves_like :basic_node, nil
+  it "is a subclass of BasicNode" do
+    ExpandableNode.superclass.should == BasicNode
+  end
 
   it "returns the object" do
     @node.object.should == @object
@@ -60,5 +58,19 @@ describe "ExpandableNode" do
 
   it "is expandable" do
     @node.expandable?.should == true
+  end
+end
+
+describe "ListNode" do
+  it "is a subclass of ExpandableNode" do
+    ListNode.superclass.should == ExpandableNode
+  end
+
+  it "returns a list of child BasicNodes with the given strings" do
+    node = ListNode.alloc.initWithObject(%w{ object_id send }, stringValue: "methods")
+    node.children.should == [
+      BasicNode.alloc.initWithStringValue("object_id"),
+      BasicNode.alloc.initWithStringValue("send")
+    ]
   end
 end
