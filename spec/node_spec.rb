@@ -36,6 +36,13 @@ describe "BasicNode" do
     @node.expandable?.should == false
   end
 
+  it "initializes with the given prefix and string value" do
+    @node = BasicNode.alloc.initWithPrefix("irb(main)>", stringValue: "42")
+    @node.prefix.is_a?(NSAttributedString).should == true
+    @node.prefix.string.should == "irb(main)>"
+    @node.stringValue.string.should == "42"
+  end
+
   it_behaves_like :basic_node, nil
 end
 

@@ -23,9 +23,16 @@ module IRB
           self
         end
       end
+
+      def initWithPrefix(prefix, stringValue: stringValue)
+        if initWithStringValue(stringValue)
+          @prefix = prefix.is_a?(NSAttributedString) ? prefix : attributedString(prefix)
+          self
+        end
+      end
       
       def prefix
-        EMPTY_STRING
+        @prefix || EMPTY_STRING
       end
       
       def expandable?
@@ -36,20 +43,7 @@ module IRB
         EMPTY_ARRAY
       end
     end
-    
-    class RowNode < BasicNode
-      def initWithPrompt(prompt, stringValue: stringValue)
-        if initWithStringValue(stringValue)
-          @prompt = attributedString(prompt)
-          self
-        end
-      end
-      
-      def prompt
-        @prompt
-      end
-    end
-    
+
     class ExpandableNode < BasicNode
       attr_reader :object
 
