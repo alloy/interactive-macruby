@@ -70,8 +70,8 @@ module IRB
     end
     
     class BlockListNode < ExpandableNode
-      def initWithBlockAndStringRepresentation(string, &block)
-        if initWithStringRepresentation(string)
+      def initWithBlockAndStringValue(stringValue, &block)
+        if initWithStringValue(stringValue)
           @block = block
           self
         end

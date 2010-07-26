@@ -74,3 +74,18 @@ describe "ListNode" do
     ]
   end
 end
+
+describe "BlockListNode" do
+  it "is a subclass of ExpandableNode" do
+    BlockListNode.superclass.should == ExpandableNode
+  end
+
+  it "returns a list of child nodes created in the given block" do
+    nodes = [
+      BasicNode.alloc.initWithStringValue("42"),
+      ListNode.alloc.initWithObject(%w{ send }, stringValue: "methods")
+    ]
+    node = BlockListNode.alloc.initWithBlockAndStringValue("nodes different") { nodes }
+    node.children.should == nodes
+  end
+end
