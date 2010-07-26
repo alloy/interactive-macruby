@@ -15,12 +15,11 @@ module IRB
       EMPTY_STRING = Helper.attributedString("")
       EMPTY_ARRAY = []
       
-      attr_reader :stringRepresentation
+      attr_reader :stringValue
       
-      def initWithStringRepresentation(stringRepresentation)
+      def initWithStringValue(stringValue)
         if init
-          @stringRepresentation = stringRepresentation.is_a?(NSAttributedString) ?
-                                    stringRepresentation : attributedString(stringRepresentation)
+          @stringValue = stringValue.is_a?(NSAttributedString) ? stringValue : attributedString(stringValue)
           self
         end
       end
@@ -39,8 +38,8 @@ module IRB
     end
     
     class RowNode < BasicNode
-      def initWithPrompt(prompt, stringRepresentation: string)
-        if initWithStringRepresentation(string)
+      def initWithPrompt(prompt, stringValue: stringValue)
+        if initWithStringValue(stringValue)
           @prompt = attributedString(prompt)
           self
         end
@@ -52,8 +51,10 @@ module IRB
     end
     
     class ExpandableNode < BasicNode
-      def initWithObject(object, stringRepresentation: string)
-        if initWithStringRepresentation(string)
+      attr_reader :object
+
+      def initWithObject(object, stringValue: stringValue)
+        if initWithStringValue(stringValue)
           @object = object
           self
         end
