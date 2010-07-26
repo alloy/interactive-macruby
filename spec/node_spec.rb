@@ -18,7 +18,7 @@ describe "BasicNode" do
     @node.prefix.string.should == ""
   end
 
-  it "returns the string repre" do
+  it "returns the an attributed string as string representation" do
     @node.stringRepresentation.is_a?(NSAttributedString).should == true
   end
 
