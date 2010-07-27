@@ -1,6 +1,7 @@
 framework "AppKit"
 require "mspec"
 $:.unshift File.expand_path("../../lib", __FILE__)
+require "irb/cocoa/irb_ext"
 require "irb/cocoa/node"
 
 include IRB::Cocoa
@@ -89,3 +90,73 @@ describe "BlockListNode" do
     node.children.should == nodes
   end
 end
+
+class AnObjectWithoutInstanceMethods
+end
+
+class AnObject
+  def an_instance_method
+  end
+
+  private
+
+  def a_private_instance_method
+  end
+end
+
+describe "ObjectNode" do
+  before do
+    @object = AnObject.new
+    @node = ObjectNode.alloc.initWithObject(@object)
+  end
+
+  it "is a subclass of ExpandableNode" do
+    ObjectNode.superclass.should == ExpandableNode
+  end
+
+  it "returns a formatted result string, of the object, as stringValue" do
+    @node.stringValue.should == IRB.formatter.result(@object)
+  end
+
+  it "returns a ClassNode for this object’s class" do
+    @node.classNode.should == ClassNode.alloc.initWithObject(@object.class, stringValue: "Class: AnObject")
+  end
+
+  it "returns a BlockListNode with public method objects, only defined on the object's class" do
+    @node.publicMethodsNode.to_s.should == "Public methods"
+    method = @object.method(:an_instance_method)
+    @node.publicMethodsNode.children.should ==
+      [ObjectNode.alloc.initWithObject(method)]
+  end
+
+  it "returns nil if there are no public methods defined on the object's class" do
+    @node = ObjectNode.alloc.initWithObject(AnObjectWithoutInstanceMethods.new)
+    @node.publicMethodsNode.should == nil
+  end
+
+#  it "returns a BlockListNode with Objective-C method objects, only defined on the object's class" do
+    #objc = Helper.attributedString("42")
+    #@node = ObjectNode.alloc.initWithObject(objc)
+    #@node.objcMethodsNode.to_s.should == "Objective-C methods"
+    #methods = objc.methods(false, true) - objc.methods(false)
+    #@node.objcMethodsNode.children.should == methods.map do |name|
+      #ObjectNode.alloc.initWithObject(objc.method(name))
+    #end
+  #end
+
+ it "returns a BlockListNode with the object's instance variables" do
+    @node.instanceVariablesNode.should == nil
+
+    var = Object.new
+    @object.instance_variable_set(:@an_instance_variable, var)
+    @node.instanceVariablesNode.children.should == [
+      ObjectNode.alloc.initWithObject(var, stringValue: "@an_instance_variable")
+    ]
+  end
+end
+
+#describe "ObjectNode#children" do
+  #it "includes a ClassNode" do
+    #@node.children[0].should == @node.classNode
+  #end
+#end

@@ -44,7 +44,11 @@ module IRB
       end
 
       def ==(other)
-        other.class == self.class && other.prefix == prefix && other.stringValue == stringValue
+        other.class == self.class && other.prefix == prefix && other.stringValue == stringValue && other.children == children
+      end
+
+      def to_s
+        stringValue.string
       end
     end
 
@@ -60,6 +64,10 @@ module IRB
       
       def expandable?
         true
+      end
+
+      def ==(other)
+        super && other.object == object
       end
     end
     
@@ -81,7 +89,68 @@ module IRB
         @children ||= @block.call
       end
     end
-    
+
+    # Object wrapper nodes
+
+    class ObjectNode < ExpandableNode
+      def initWithObject(object)
+        if init
+          @object = object
+          self
+        end
+      end
+
+      def stringValue
+        @stringValue ||= IRB.formatter.result(@object)
+      end
+
+      #def children
+        #@children ||= [
+          #classNode,
+        #]
+      #end
+
+      def classNode
+        ClassNode.alloc.initWithObject(@object.class, stringValue: "Class: #{@object.class.name}")
+      end
+
+      def publicMethodsNode
+        methods = @object.methods(false)
+        unless methods.empty?
+          BlockListNode.alloc.initWithBlockAndStringValue("Public methods") do
+            methods.map { |name| ObjectNode.alloc.initWithObject(@object.method(name)) }
+          end
+        end
+      end
+
+      def objcMethodsNode
+        methods = @object.methods(false, true) - @object.methods(false)
+        unless methods.empty?
+          BlockListNode.alloc.initWithBlockAndStringValue("Objective-C methods") do
+            methods.map { |name| ObjectNode.alloc.initWithObject(@object.method(name)) }
+          end
+        end 
+      end
+
+      def instanceVariablesNode
+        variables = @object.instance_variables
+        unless variables.empty?
+          BlockListNode.alloc.initWithBlockAndStringValue("Instance variables") do
+            variables.map do |name|
+              obj = @object.instance_variable_get(name)
+              ObjectNode.alloc.initWithObject(obj, stringValue: name)
+            end
+          end
+        end
+      end
+    end
+
+    class ClassNode < ObjectNode
+      def children
+        []
+      end
+    end
+
     class ResultNode < ExpandableNode
       def children
         @children ||= [
@@ -119,34 +188,6 @@ module IRB
             @object.ancestors.map do |ancestor|
               ResultNode.alloc.initWithObject(ancestor,
                         stringRepresentation: attributedString(ancestor.name))
-            end
-          end
-        end
-      end
-      
-      def publicMethodsDescriptionNode
-        methods = @object.methods(false)
-        unless methods.empty?
-          string = attributedString("Public methods")
-          ListNode.alloc.initWithObject(methods, stringRepresentation: string)
-        end
-      end
-      
-      def objcMethodsDescriptionNode
-        methods = @object.methods(false, true) - @object.methods(false)
-        unless methods.empty?
-          string = attributedString("Objective-C methods")
-          ListNode.alloc.initWithObject(methods, stringRepresentation: string)
-        end
-      end
-      
-      def instanceVariablesNode
-        variables = @object.instance_variables
-        unless variables.empty?
-          BlockListNode.alloc.initWithBlockAndStringRepresentation(attributedString("Instance variables")) do
-            variables.map do |variable|
-              ResultNode.alloc.initWithObject(@object.instance_variable_get(variable),
-                        stringRepresentation: attributedString(variable))
             end
           end
         end

@@ -145,4 +145,5 @@ module IRB
   end
 end
 
+IRB.formatter = IRB::Cocoa::ColoredFormatter.new
 $stdout = IRB::Driver::OutputRedirector.new
