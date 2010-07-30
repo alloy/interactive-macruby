@@ -104,11 +104,11 @@ module IRB
         @stringValue ||= IRB.formatter.result(@object)
       end
 
-      #def children
-        #@children ||= [
-          #classNode,
-        #]
-      #end
+      def children
+        @children ||= [
+          classNode,
+        ]
+      end
 
       def classNode
         ClassNode.alloc.initWithObject(@object.class,
@@ -119,7 +119,7 @@ module IRB
         methods = @object.methods(false)
         unless methods.empty?
           BlockListNode.alloc.initWithBlockAndStringValue("Public methods") do
-            methods.map { |name| ObjectNode.alloc.initWithObject(@object.method(name)) }
+            methods.map { |name| BasicNode.alloc.initWithStringValue(name) }
           end
         end
       end
@@ -128,7 +128,7 @@ module IRB
         methods = @object.methods(false, true) - @object.methods(false)
         unless methods.empty?
           BlockListNode.alloc.initWithBlockAndStringValue("Objective-C methods") do
-            methods.map { |name| ObjectNode.alloc.initWithObject(@object.method(name)) }
+            methods.map { |name| BasicNode.alloc.initWithStringValue(name) }
           end
         end
       end
