@@ -1,22 +1,22 @@
 module IRB
   module Cocoa
     DEFAULT_ATTRIBUTES = { NSFontAttributeName => NSFont.fontWithName("Menlo Regular", size: 11) }
-    
+
     module Helper
       def attributedString(string)
         NSAttributedString.alloc.initWithString(string, attributes: DEFAULT_ATTRIBUTES)
       end
       module_function :attributedString
     end
-    
+
     class BasicNode
       include Helper
-      
+
       EMPTY_STRING = Helper.attributedString("")
       EMPTY_ARRAY = []
-      
+
       attr_reader :stringValue
-      
+
       def initWithStringValue(stringValue)
         if init
           @stringValue = stringValue.is_a?(NSAttributedString) ? stringValue : attributedString(stringValue)
@@ -30,15 +30,15 @@ module IRB
           self
         end
       end
-      
+
       def prefix
         @prefix || EMPTY_STRING
       end
-      
+
       def expandable?
         false
       end
-      
+
       def children
         EMPTY_ARRAY
       end
@@ -61,7 +61,7 @@ module IRB
           self
         end
       end
-      
+
       def expandable?
         true
       end
@@ -70,13 +70,13 @@ module IRB
         super && other.object == object
       end
     end
-    
+
     class ListNode < ExpandableNode
       def children
         @children ||= @object.map { |s| BasicNode.alloc.initWithStringValue(s) }
       end
     end
-    
+
     class BlockListNode < ExpandableNode
       def initWithBlockAndStringValue(stringValue, &block)
         if initWithStringValue(stringValue)
@@ -84,7 +84,7 @@ module IRB
           self
         end
       end
-      
+
       def children
         @children ||= @block.call
       end
@@ -111,7 +111,8 @@ module IRB
       #end
 
       def classNode
-        ClassNode.alloc.initWithObject(@object.class, stringValue: "Class: #{@object.class.name}")
+        ClassNode.alloc.initWithObject(@object.class,
+                          stringValue: "Class: #{@object.class.name}")
       end
 
       def publicMethodsNode
@@ -129,7 +130,7 @@ module IRB
           BlockListNode.alloc.initWithBlockAndStringValue("Objective-C methods") do
             methods.map { |name| ObjectNode.alloc.initWithObject(@object.method(name)) }
           end
-        end 
+        end
       end
 
       def instanceVariablesNode

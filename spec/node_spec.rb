@@ -134,15 +134,15 @@ describe "ObjectNode" do
     @node.publicMethodsNode.should == nil
   end
 
-#  it "returns a BlockListNode with Objective-C method objects, only defined on the object's class" do
-    #objc = Helper.attributedString("42")
-    #@node = ObjectNode.alloc.initWithObject(objc)
-    #@node.objcMethodsNode.to_s.should == "Objective-C methods"
-    #methods = objc.methods(false, true) - objc.methods(false)
-    #@node.objcMethodsNode.children.should == methods.map do |name|
-      #ObjectNode.alloc.initWithObject(objc.method(name))
-    #end
-  #end
+ it "returns a BlockListNode with Objective-C method objects, only defined on the object's class" do
+    objc = Helper.attributedString("42")
+    @node = ObjectNode.alloc.initWithObject(objc)
+    @node.objcMethodsNode.to_s.should == "Objective-C methods"
+    methods = objc.methods(false, true) - objc.methods(false)
+    @node.objcMethodsNode.children.should == methods.map do |name|
+      ObjectNode.alloc.initWithObject(objc.method(name))
+    end
+  end
 
  it "returns a BlockListNode with the object's instance variables" do
     @node.instanceVariablesNode.should == nil
@@ -155,8 +155,8 @@ describe "ObjectNode" do
   end
 end
 
-#describe "ObjectNode#children" do
-  #it "includes a ClassNode" do
-    #@node.children[0].should == @node.classNode
-  #end
-#end
+describe "ObjectNode#children" do
+  it "includes a ClassNode" do
+    @node.children[0].should == @node.classNode
+  end
+end
