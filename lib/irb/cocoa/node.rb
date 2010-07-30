@@ -107,6 +107,9 @@ module IRB
       def children
         @children ||= [
           classNode,
+          publicMethodsNode,
+          objcMethodsNode,
+          instanceVariablesNode,
         ]
       end
 

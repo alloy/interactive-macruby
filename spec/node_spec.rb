@@ -168,4 +168,17 @@ describe "ObjectNode#children" do
   it "includes a ClassNode" do
     @node.children[0].should == @node.classNode
   end
+
+  it "includes a public methods node" do
+    @node.children[1].should == @node.publicMethodsNode
+  end
+
+  it "includes a Objective-C methods node" do
+    @node.children[2].should == @node.objcMethodsNode
+  end
+
+  #it "includes an instance variables node" do
+    #@object.instance_variable_set(:@an_instance_variable, true)
+    #@node.children[3].should == @node.instanceVariablesNode
+  #end
 end
