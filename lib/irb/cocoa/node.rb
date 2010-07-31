@@ -94,6 +94,16 @@ module IRB
 
     class ObjectNode < ExpandableNode
       class << self
+        def nodeForObject(object)
+          klass = case object
+          when Module then ModNode
+          when NSImage then NSImageNode
+          else
+            ObjectNode
+          end
+          klass.alloc.initWithObject(object)
+        end
+
         attr_accessor :children
       end
 
@@ -190,6 +200,9 @@ module IRB
           end
         end
       end
+    end
+
+    class NSImageNode < ObjectNode
     end
   end
 end

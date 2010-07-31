@@ -1,13 +1,22 @@
 require File.expand_path("../spec_helper", __FILE__)
 
 describe "ObjectNode" do
+  it "is a subclass of ExpandableNode" do
+    ObjectNode.superclass.should == ExpandableNode
+  end
+
+  it "returns an instance of the appropriate ObjectNode subclass for a given object" do
+    ObjectNode.nodeForObject(Object.new).class.should == ObjectNode
+    ObjectNode.nodeForObject(String).class.should == ModNode
+    ObjectNode.nodeForObject(Kernel).class.should == ModNode
+    ObjectNode.nodeForObject(NSImage.alloc.init).class.should == NSImageNode
+  end
+end
+
+describe "An ObjectNode instance" do
   before do
     @object = AnObject.new
     @node = ObjectNode.alloc.initWithObject(@object)
-  end
-
-  it "is a subclass of ExpandableNode" do
-    ObjectNode.superclass.should == ExpandableNode
   end
 
   it "returns a formatted result string, of the object, as stringValue" do
@@ -74,7 +83,7 @@ describe "ObjectNode" do
   end
 end
 
-describe "ObjectNode, initialized with a stringValue" do
+describe "An ObjectNode instance, initialized with a stringValue" do
   before do
     @object = AnObject.new
     @node = ObjectNode.alloc.initWithObject(@object, stringValue: "An object")
@@ -90,7 +99,7 @@ describe "ObjectNode, initialized with a stringValue" do
   end
 end
 
-describe "ObjectNode, initialized without a stringValue" do
+describe "An ObjectNode instance, initialized without a stringValue" do
   before do
     @object = AnObject.new
     @node = ObjectNode.alloc.initWithObject(@object)
@@ -132,5 +141,11 @@ describe "ModNode" do
       :publicMethodsNode, :objcMethodsNode,
       :instanceVariablesNode
     ]
+  end
+end
+
+describe "NSImageNode" do
+  it "returns an image dataCell" do
+    flunk "TODO"
   end
 end
