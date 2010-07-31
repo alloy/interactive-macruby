@@ -56,7 +56,7 @@ module IRB
       end
 
       def rowHeight
-        16
+        #16
       end
     end
 

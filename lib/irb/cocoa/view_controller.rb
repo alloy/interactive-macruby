@@ -14,11 +14,16 @@ class IRBViewController < NSViewController
   def initWithObject(object, binding: binding, delegate: delegate)
     if init
       @rows = []
+      @rowsWhereHeightChanged = NSMutableIndexSet.indexSet
       @delegate = delegate
       
       @history = []
       @currentHistoryIndex = 0
       
+      @textFieldUsedForRowHeight = NSTextField.new
+      @textFieldUsedForRowHeight.bezeled = false
+      @textFieldUsedForRowHeight.bordered = false
+
       @colorizationFormatter = IRB::Cocoa::ColoredFormatter.new
       setupIRBForObject(object, binding: binding)
       
@@ -163,7 +168,26 @@ class IRBViewController < NSViewController
   end
 
   def outlineView(outlineView, heightOfRowByItem: item)
-    item == :input ? 16 : item.rowHeight
+    if item == :input
+      16
+    else
+      unless height = item.rowHeight
+        string = item.value
+        width = outlineView.outlineTableColumn.width
+        if string.string.include?("\n") || string.size.width > width
+          @rowsWhereHeightChanged.addIndex(@rows.index(item))
+          @textFieldUsedForRowHeight.attributedStringValue = string
+          size = @textFieldUsedForRowHeight.cell.cellSizeForBounds(NSMakeRect(0, 0, width, 1000000))
+          height = size.height
+        end
+      end
+      height || 16
+    end
+  end
+
+  def outlineViewColumnDidResize(_)
+    view.outlineView.noteHeightOfRowsWithIndexesChanged(@rowsWhereHeightChanged)
+    @rowsWhereHeightChanged = NSMutableIndexSet.indexSet
   end
 
   private
