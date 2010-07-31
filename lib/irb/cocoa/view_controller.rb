@@ -163,12 +163,7 @@ class IRBViewController < NSViewController
   end
 
   def outlineView(outlineView, heightOfRowByItem: item)
-    if item.is_a?(NSImageNode)
-      height = item.object.size.height
-      height > 100 ? 100 : height
-    else
-      16
-    end
+    item == :input ? 16 : item.rowHeight
   end
 
   private

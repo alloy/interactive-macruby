@@ -54,6 +54,10 @@ module IRB
       def dataCellTypeForColumn(column)
         NSTextFieldCell
       end
+
+      def rowHeight
+        16
+      end
     end
 
     class ExpandableNode < BasicNode
@@ -215,6 +219,13 @@ module IRB
 
       def dataCellTypeForColumn(column)
         column == "value" ? NSImageCell : NSTextFieldCell
+      end
+
+      def rowHeight
+        @rowHeight ||= begin
+          height = @object.size.height.floor
+          height > 100 ? 100 : height
+        end
       end
     end
   end

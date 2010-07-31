@@ -135,12 +135,16 @@ end
 
 describe "NSImageNode" do
   before do
-    @image = NSImage.alloc.init
+    @image = NSImage.imageNamed('NSNetwork')
     @node = NSImageNode.alloc.initWithObject(@image)
   end
 
   it "returns NSImageCell as the data cell to use for the value column" do
     @node.dataCellTypeForColumn('prefix').should == NSTextFieldCell
     @node.dataCellTypeForColumn('value').should == NSImageCell
+  end
+
+  it "returns the row height" do
+    @node.rowHeight.should == 32
   end
 end

@@ -40,6 +40,10 @@ describe "BasicNode" do
     @node.dataCellTypeForColumn('prefix').should == NSTextFieldCell
     @node.dataCellTypeForColumn('value').should == NSTextFieldCell
   end
+
+  it "returns 16 as the height that this row should be" do
+    @node.rowHeight.should == 16
+  end
 end
 
 describe "ExpandableNode" do
