@@ -207,6 +207,12 @@ module IRB
     end
 
     class NSImageNode < ObjectNode
+      self.children = [:classNode, :publicMethodsNode, :objcMethodsNode, :instanceVariablesNode]
+
+      def value
+        @object
+      end
+
       def dataCellTypeForColumn(column)
         column == "value" ? NSImageCell : NSTextFieldCell
       end

@@ -42,7 +42,8 @@ class IRBViewController < NSViewController
   end
   
   def receivedResult(result)
-    @rows << ObjectNode.alloc.initWithObject(result)
+    @rows << ObjectNode.nodeForObject(result)
+    p @rows.last
     updateOutlineView
   end
   
@@ -100,7 +101,6 @@ class IRBViewController < NSViewController
     if item == nil
       # add one extra which is the input row
       @rows.size + 1
-      #@rows.size
     else
       item.children.size
     end
@@ -153,10 +153,10 @@ class IRBViewController < NSViewController
   def outlineView(outlineView, dataCellForTableColumn: column, item: item)
     #puts 'dataCell' #, item, ''
     if column
-      if item == :input && column.identifier == VALUE
-        @inputCell
+      if item == :input
+        column.identifier == VALUE ? @inputCell : @dataCells[NSTextFieldCell]
       else
-        @resultCell
+        @dataCells[item.dataCellTypeForColumn(column.identifier)]
       end
     end
   end
@@ -200,18 +200,23 @@ class IRBViewController < NSViewController
   def setupDataCells
     font = IRB::Cocoa::DEFAULT_ATTRIBUTES[NSFontAttributeName]
     
-    @resultCell = NSTextFieldCell.alloc.init
-    @resultCell.font = font
-    # @resultCell.selectable = true
-    @resultCell.editable = false
-    
+    textCell = NSTextFieldCell.alloc.init
+    textCell.font = font
+    # textCell.selectable = true
+    textCell.editable = false
+
+    imageCell = NSImageCell.alloc.init
+    imageCell.imageAlignment = NSImageAlignLeft
+
+    @dataCells = { NSTextFieldCell => textCell, NSImageCell => imageCell }
+
     @inputCell = NSTextFieldCell.alloc.init
     @inputCell.font = font
     @inputCell.editable = true
     @inputCell.bordered = false
     @inputCell.focusRingType = NSFocusRingTypeNone
   end
-  
+
   def updateOutlineView
     view.outlineView.reloadData
     editInputCell
