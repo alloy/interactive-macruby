@@ -48,12 +48,12 @@ class IRBViewController < NSViewController
   
   def receivedException(exception)
     string = @colorizationFormatter.exception(exception)
-    @rows << BasicNode.alloc.initWithStringValue(string)
+    @rows << BasicNode.alloc.initWithvalue(string)
     updateOutlineView
   end
   
   def receivedOutput(output)
-    @rows << BasicNode.alloc.initWithStringValue(output)
+    @rows << BasicNode.alloc.initWithvalue(output)
     updateOutlineView
   end
   
@@ -133,7 +133,7 @@ class IRBViewController < NSViewController
     when :input
       column.identifier == PROMPT ? @context.prompt : EMPTY
     when BasicNode
-      column.identifier == PROMPT ? item.prefix : item.stringValue
+      column.identifier == PROMPT ? item.prefix : item.value
     end
     
     # make sure the prompt column is still wide enough
@@ -146,7 +146,7 @@ class IRBViewController < NSViewController
   end
   
   def outlineView(outlineView, setObjectValue: input, forTableColumn: column, byItem: item)
-    @rows << BasicNode.alloc.initWithPrefix(@context.prompt, stringValue: input)
+    @rows << BasicNode.alloc.initWithPrefix(@context.prompt, value: input)
     processInput(input)
   end
   

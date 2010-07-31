@@ -19,18 +19,18 @@ describe "An ObjectNode instance" do
     @node = ObjectNode.alloc.initWithObject(@object)
   end
 
-  it "returns a formatted result string, of the object, as stringValue" do
+  it "returns a formatted result string, of the object, as value" do
     @node.objectDescription.should == IRB.formatter.result(@object)
   end
 
   it "returns a ModNode for this object’s class" do
-    @node.classNode.should == ModNode.alloc.initWithObject(@object.class, stringValue: "Class: AnObject")
+    @node.classNode.should == ModNode.alloc.initWithObject(@object.class, value: "Class: AnObject")
   end
 
   it "returns a BlockListNode with public method names, only define on the object's class" do
     @node.publicMethodsNode.to_s.should == "Public methods"
     @node.publicMethodsNode.children.should ==
-      [BasicNode.alloc.initWithStringValue("an_instance_method")]
+      [BasicNode.alloc.initWithvalue("an_instance_method")]
   end
 
   it "returns nil if there are no public methods defined on the object's class" do
@@ -45,7 +45,7 @@ describe "An ObjectNode instance" do
 
     methods = objc.methods(false, true) - objc.methods(false)
     @node.objcMethodsNode.children.should == methods.map do |name|
-      BasicNode.alloc.initWithStringValue(name)
+      BasicNode.alloc.initWithvalue(name)
     end
   end
 
@@ -54,7 +54,7 @@ describe "An ObjectNode instance" do
 
     @object.instance_variable_set(:@an_instance_variable, :ok)
     @node.instanceVariablesNode.children.should == [
-      ObjectNode.alloc.initWithObject(:ok, stringValue: "@an_instance_variable")
+      ObjectNode.alloc.initWithObject(:ok, value: "@an_instance_variable")
     ]
   end
 
@@ -72,30 +72,30 @@ describe "An ObjectNode instance" do
   end
 end
 
-describe "An ObjectNode instance, initialized with a stringValue" do
+describe "An ObjectNode instance, initialized with a value" do
   before do
     @object = AnObject.new
-    @node = ObjectNode.alloc.initWithObject(@object, stringValue: "An object")
+    @node = ObjectNode.alloc.initWithObject(@object, value: "An object")
   end
 
-  it "returns the stringValue it was initialized with" do
-    @node.stringValue.string.should == "An object"
+  it "returns the value it was initialized with" do
+    @node.value.string.should == "An object"
   end
 
   it "returns a descriptionNode" do
     @node.descriptionNode.children.should ==
-      [BasicNode.alloc.initWithStringValue(@node.objectDescription)]
+      [BasicNode.alloc.initWithvalue(@node.objectDescription)]
   end
 end
 
-describe "An ObjectNode instance, initialized without a stringValue" do
+describe "An ObjectNode instance, initialized without a value" do
   before do
     @object = AnObject.new
     @node = ObjectNode.alloc.initWithObject(@object)
   end
 
-  it "returns the object description as the stringValue" do
-    @node.stringValue.should == @node.objectDescription
+  it "returns the object description as the value" do
+    @node.value.should == @node.objectDescription
   end
 
   it "returns nil as description node" do
@@ -110,17 +110,17 @@ describe "ModNode" do
 
   it "returns the mod type" do
     node = ModNode.alloc.initWithObject(String)
-    node.modTypeNode.should == BasicNode.alloc.initWithStringValue("Type: Class")
+    node.modTypeNode.should == BasicNode.alloc.initWithvalue("Type: Class")
 
     node = ModNode.alloc.initWithObject(Kernel)
-    node.modTypeNode.should == BasicNode.alloc.initWithStringValue("Type: Module")
+    node.modTypeNode.should == BasicNode.alloc.initWithvalue("Type: Module")
   end
 
   it "returns the ancestors" do
     node = ModNode.alloc.initWithObject(String)
-    node.ancestorNode.stringValue.string.should == "Ancestors"
+    node.ancestorNode.value.string.should == "Ancestors"
     node.ancestorNode.children.should == String.ancestors[1..-1].map do |mod|
-      ModNode.alloc.initWithObject(mod, stringValue: mod.name)
+      ModNode.alloc.initWithObject(mod, value: mod.name)
     end
   end
 
@@ -139,8 +139,8 @@ describe "NSImageNode" do
     @node = NSImageNode.alloc.initWithObject(@image)
   end
 
-  it "returns NSImageCell as the data cell to use for the stringValue column" do
+  it "returns NSImageCell as the data cell to use for the value column" do
     @node.dataCellTypeForColumn('prefix').should == NSTextFieldCell
-    @node.dataCellTypeForColumn('stringValue').should == NSImageCell
+    @node.dataCellTypeForColumn('value').should == NSImageCell
   end
 end

@@ -15,17 +15,17 @@ module IRB
       EMPTY_STRING = Helper.attributedString("")
       EMPTY_ARRAY = []
 
-      attr_reader :stringValue
+      attr_reader :value
 
-      def initWithStringValue(stringValue)
+      def initWithvalue(value)
         if init
-          @stringValue = stringValue.is_a?(NSAttributedString) ? stringValue : attributedString(stringValue)
+          @value = value.is_a?(NSAttributedString) ? value : attributedString(value)
           self
         end
       end
 
-      def initWithPrefix(prefix, stringValue: stringValue)
-        if initWithStringValue(stringValue)
+      def initWithPrefix(prefix, value: value)
+        if initWithvalue(value)
           @prefix = prefix.is_a?(NSAttributedString) ? prefix : attributedString(prefix)
           self
         end
@@ -44,11 +44,11 @@ module IRB
       end
 
       def ==(other)
-        other.class == self.class && other.prefix == prefix && other.stringValue == stringValue
+        other.class == self.class && other.prefix == prefix && other.value == value
       end
 
       def to_s
-        stringValue.string
+        value.string
       end
 
       def dataCellTypeForColumn(column)
@@ -59,8 +59,8 @@ module IRB
     class ExpandableNode < BasicNode
       attr_reader :object
 
-      def initWithObject(object, stringValue: stringValue)
-        if initWithStringValue(stringValue)
+      def initWithObject(object, value: value)
+        if initWithvalue(value)
           @object = object
           self
         end
@@ -77,13 +77,13 @@ module IRB
 
     class ListNode < ExpandableNode
       def children
-        @children ||= @object.map { |s| BasicNode.alloc.initWithStringValue(s) }
+        @children ||= @object.map { |s| BasicNode.alloc.initWithvalue(s) }
       end
     end
 
     class BlockListNode < ExpandableNode
-      def initWithBlockAndStringValue(stringValue, &block)
-        if initWithStringValue(stringValue)
+      def initWithBlockAndvalue(value, &block)
+        if initWithvalue(value)
           @block = block
           self
         end
@@ -127,15 +127,15 @@ module IRB
         end
       end
 
-      def initWithObject(object, stringValue: stringValue)
+      def initWithObject(object, value: value)
         if super
           @showDescriptionNode = true
           self
         end
       end
 
-      def stringValue
-        @stringValue ||= objectDescription
+      def value
+        @value ||= objectDescription
       end
 
       def objectDescription
@@ -148,36 +148,36 @@ module IRB
 
       def descriptionNode
         if @showDescriptionNode
-          ListNode.alloc.initWithObject([objectDescription], stringValue: "Description")
+          ListNode.alloc.initWithObject([objectDescription], value: "Description")
         end
       end
 
       def classNode
         ModNode.alloc.initWithObject(@object.class,
-                        stringValue: "Class: #{@object.class.name}")
+                        value: "Class: #{@object.class.name}")
       end
 
       def publicMethodsNode
         methods = @object.methods(false)
         unless methods.empty?
-          ListNode.alloc.initWithObject(methods, stringValue: "Public methods")
+          ListNode.alloc.initWithObject(methods, value: "Public methods")
         end
       end
 
       def objcMethodsNode
         methods = @object.methods(false, true) - @object.methods(false)
         unless methods.empty?
-          ListNode.alloc.initWithObject(methods, stringValue: "Objective-C methods")
+          ListNode.alloc.initWithObject(methods, value: "Objective-C methods")
         end
       end
 
       def instanceVariablesNode
         variables = @object.instance_variables
         unless variables.empty?
-          BlockListNode.alloc.initWithBlockAndStringValue("Instance variables") do
+          BlockListNode.alloc.initWithBlockAndvalue("Instance variables") do
             variables.map do |name|
               obj = @object.instance_variable_get(name)
-              ObjectNode.alloc.initWithObject(obj, stringValue: name)
+              ObjectNode.alloc.initWithObject(obj, value: name)
             end
           end
         end
@@ -194,13 +194,13 @@ module IRB
       ]
 
       def modTypeNode
-        BasicNode.alloc.initWithStringValue("Type: #{@object.class == Class ? 'Class' : 'Module'}")
+        BasicNode.alloc.initWithvalue("Type: #{@object.class == Class ? 'Class' : 'Module'}")
       end
 
       def ancestorNode
-        BlockListNode.alloc.initWithBlockAndStringValue("Ancestors") do
+        BlockListNode.alloc.initWithBlockAndvalue("Ancestors") do
           @object.ancestors[1..-1].map do |mod|
-            ModNode.alloc.initWithObject(mod, stringValue: mod.name)
+            ModNode.alloc.initWithObject(mod, value: mod.name)
           end
         end
       end
@@ -208,7 +208,7 @@ module IRB
 
     class NSImageNode < ObjectNode
       def dataCellTypeForColumn(column)
-        column == "stringValue" ? NSImageCell : NSTextFieldCell
+        column == "value" ? NSImageCell : NSTextFieldCell
       end
     end
   end
