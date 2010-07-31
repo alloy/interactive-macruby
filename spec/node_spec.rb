@@ -115,7 +115,7 @@ describe "ObjectNode" do
   end
 
   it "returns a formatted result string, of the object, as stringValue" do
-    @node.stringValue.should == IRB.formatter.result(@object)
+    @node.objectDescription.should == IRB.formatter.result(@object)
   end
 
   it "returns a ModNode for this object’s class" do
@@ -167,13 +167,45 @@ describe "ObjectNode" do
   it "collects all children nodes, without nil values" do
     def @node.called; @called ||= []; end
 
+    def @node.descriptionNode;       called << :descriptionNode;       nil;                    end
     def @node.classNode;             called << :classNode;             :classNode;             end
     def @node.publicMethodsNode;     called << :publicMethodsNode;     :publicMethodsNode;     end
     def @node.objcMethodsNode;       called << :objcMethodsNode;       nil;                    end
     def @node.instanceVariablesNode; called << :instanceVariablesNode; :instanceVariablesNode; end
 
     @node.children.should == [:classNode, :publicMethodsNode, :instanceVariablesNode]
-    @node.called.should ==   [:classNode, :publicMethodsNode, :objcMethodsNode, :instanceVariablesNode]
+    @node.called.should ==   [:descriptionNode, :classNode, :publicMethodsNode, :objcMethodsNode, :instanceVariablesNode]
+  end
+end
+
+describe "ObjectNode, initialized with a stringValue" do
+  before do
+    @object = AnObject.new
+    @node = ObjectNode.alloc.initWithObject(@object, stringValue: "An object")
+  end
+
+  it "returns the stringValue it was initialized with" do
+    @node.stringValue.string.should == "An object"
+  end
+
+  it "returns a descriptionNode" do
+    @node.descriptionNode.children.should ==
+      [BasicNode.alloc.initWithStringValue(@node.objectDescription)]
+  end
+end
+
+describe "ObjectNode, initialized without a stringValue" do
+  before do
+    @object = AnObject.new
+    @node = ObjectNode.alloc.initWithObject(@object)
+  end
+
+  it "returns the object description as the stringValue" do
+    @node.stringValue.should == @node.objectDescription
+  end
+
+  it "returns nil as description node" do
+    @node.descriptionNode.should == nil
   end
 end
 

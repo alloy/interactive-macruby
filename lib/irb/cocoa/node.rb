@@ -98,7 +98,7 @@ module IRB
       end
 
       self.children = [
-        :inspectNode,
+        :descriptionNode,
         :classNode,
         :publicMethodsNode,
         :objcMethodsNode,
@@ -108,14 +108,14 @@ module IRB
       def initWithObject(object)
         if init
           @object = object
-          @shouldShowInspectNode = false
+          @showDescriptionNode = false
           self
         end
       end
 
       def initWithObject(object, stringValue: stringValue)
         if super
-          @shouldShowInspectNode = true
+          @showDescriptionNode = true
           self
         end
       end
@@ -132,8 +132,8 @@ module IRB
         @children ||= self.class.children.map { |m| send(m) }.compact
       end
 
-      def inspectNode
-        if @shouldShowInspectNode
+      def descriptionNode
+        if @showDescriptionNode
           ListNode.alloc.initWithObject([objectDescription], stringValue: "Description")
         end
       end
