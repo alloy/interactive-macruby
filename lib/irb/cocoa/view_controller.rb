@@ -7,7 +7,7 @@ class IRBViewController < NSViewController
   
   PROMPT = "prompt"
   VALUE  = "value"
-  EMPTY  = ""
+  EMPTY  = Helper.attributedString("")
   
   attr_reader :output
   
@@ -96,15 +96,18 @@ class IRBViewController < NSViewController
   # outline view data source and delegate methods
   
   def outlineView(outlineView, numberOfChildrenOfItem: item)
+    #puts 'count' #, item, ''
     if item == nil
       # add one extra which is the input row
       @rows.size + 1
+      #@rows.size
     else
       item.children.size
     end
   end
   
   def outlineView(outlineView, isItemExpandable: item)
+    #puts 'expandable' #, item, ''
     case item
     when BasicNode
       item.expandable?
@@ -112,6 +115,7 @@ class IRBViewController < NSViewController
   end
   
   def outlineView(outlineView, child: index, ofItem: item)
+    #puts 'child' #, item, ''
     if item == nil
       if index == @rows.size
         :input
@@ -124,20 +128,21 @@ class IRBViewController < NSViewController
   end
   
   def outlineView(outlineView, objectValueForTableColumn: column, byItem: item)
+    #puts 'objectValue' #, item, ''
     result = case item
     when :input
-      column.identifier == PROMPT ? attributedString(@context.prompt) : EMPTY
+      column.identifier == PROMPT ? @context.prompt : EMPTY
     when BasicNode
-      column.identifier == PROMPT ? item.prompt : item.string
+      column.identifier == PROMPT ? item.prefix : item.stringValue
     end
     
     # make sure the prompt column is still wide enough
     if result && column.identifier == PROMPT
-      width = result.size.width
+      width = result.size.width + view.outlineView.indentationPerLevel + 10
       column.width = width if width > column.width
     end
     
-    result || EMPTY
+    result #|| EMPTY
   end
   
   def outlineView(outlineView, setObjectValue: input, forTableColumn: column, byItem: item)
@@ -146,6 +151,7 @@ class IRBViewController < NSViewController
   end
   
   def outlineView(outlineView, dataCellForTableColumn: column, item: item)
+    #puts 'dataCell' #, item, ''
     if column
       if item == :input && column.identifier == VALUE
         @inputCell
