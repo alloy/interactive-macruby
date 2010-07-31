@@ -3,6 +3,7 @@ require 'node'
 
 class IRBViewController < NSViewController
   include IRB::Cocoa::Helper
+  include IRB::Cocoa
   
   PROMPT = "prompt"
   VALUE  = "value"
@@ -41,19 +42,18 @@ class IRBViewController < NSViewController
   end
   
   def receivedResult(result)
-    @rows << IRB::Cocoa::ResultNode.alloc.initWithObject(result,
-                                   stringRepresentation: @colorizationFormatter.result(result))
+    @rows << ObjectNode.alloc.initWithObject(result)
     updateOutlineView
   end
   
   def receivedException(exception)
     string = @colorizationFormatter.exception(exception)
-    @rows << IRB::Cocoa::RowNode.alloc.initWithStringRepresentation(string)
+    @rows << BasicNode.alloc.initWithStringValue(string)
     updateOutlineView
   end
   
   def receivedOutput(output)
-    @rows << IRB::Cocoa::RowNode.alloc.initWithStringRepresentation(output)
+    @rows << BasicNode.alloc.initWithStringValue(output)
     updateOutlineView
   end
   
@@ -106,7 +106,7 @@ class IRBViewController < NSViewController
   
   def outlineView(outlineView, isItemExpandable: item)
     case item
-    when IRB::Cocoa::BasicNode
+    when BasicNode
       item.expandable?
     end
   end
@@ -127,7 +127,7 @@ class IRBViewController < NSViewController
     result = case item
     when :input
       column.identifier == PROMPT ? attributedString(@context.prompt) : EMPTY
-    when IRB::Cocoa::BasicNode
+    when BasicNode
       column.identifier == PROMPT ? item.prompt : item.string
     end
     
@@ -141,8 +141,7 @@ class IRBViewController < NSViewController
   end
   
   def outlineView(outlineView, setObjectValue: input, forTableColumn: column, byItem: item)
-    @rows << IRB::Cocoa::RowNode.alloc.initWithPrompt(@context.prompt,
-                                stringRepresentation: input)
+    @rows << BasicNode.alloc.initWithPrefix(@context.prompt, stringValue: input)
     processInput(input)
   end
   
