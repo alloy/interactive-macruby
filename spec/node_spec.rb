@@ -118,8 +118,8 @@ describe "ObjectNode" do
     @node.stringValue.should == IRB.formatter.result(@object)
   end
 
-  it "returns a ClassNode for this object’s class" do
-    @node.classNode.should == ClassNode.alloc.initWithObject(@object.class, stringValue: "Class: AnObject")
+  it "returns a ModNode for this object’s class" do
+    @node.classNode.should == ModNode.alloc.initWithObject(@object.class, stringValue: "Class: AnObject")
   end
 
   it "returns a BlockListNode with public method names, only define on the object's class" do
@@ -132,6 +132,7 @@ describe "ObjectNode" do
     @node = ObjectNode.alloc.initWithObject(AnObjectWithoutInstanceMethods.new)
     @node.publicMethodsNode.should == nil
   end
+
   it "returns a BlockListNode with Objective-C method names, only defined on the object's class" do
     objc = Helper.attributedString("42")
     @node = ObjectNode.alloc.initWithObject(objc)
@@ -162,23 +163,46 @@ describe "ObjectNode" do
     child.class.should == node.class
     child.prefix.should == node.prefix
   end
+
+  it "collects all children nodes, without nil values" do
+    def @node.called; @called ||= []; end
+
+    def @node.classNode;             called << :classNode;             :classNode;             end
+    def @node.publicMethodsNode;     called << :publicMethodsNode;     :publicMethodsNode;     end
+    def @node.objcMethodsNode;       called << :objcMethodsNode;       nil;                    end
+    def @node.instanceVariablesNode; called << :instanceVariablesNode; :instanceVariablesNode; end
+
+    @node.children.should == [:classNode, :publicMethodsNode, :instanceVariablesNode]
+    @node.called.should ==   [:classNode, :publicMethodsNode, :objcMethodsNode, :instanceVariablesNode]
+  end
 end
 
-describe "ObjectNode#children" do
-  it "includes a ClassNode" do
-    @node.children[0].should == @node.classNode
+describe "ModNode" do
+  it "is a subclass of ObjectNode" do
+    ModNode.superclass.should == ObjectNode
   end
 
-  it "includes a public methods node" do
-    @node.children[1].should == @node.publicMethodsNode
+  it "returns the mod type" do
+    node = ModNode.alloc.initWithObject(String)
+    node.modTypeNode.should == BasicNode.alloc.initWithStringValue("Type: Class")
+
+    node = ModNode.alloc.initWithObject(Kernel)
+    node.modTypeNode.should == BasicNode.alloc.initWithStringValue("Type: Module")
   end
 
-  it "includes a Objective-C methods node" do
-    @node.children[2].should == @node.objcMethodsNode
+  it "returns the ancestors" do
+    node = ModNode.alloc.initWithObject(String)
+    node.ancestorNode.stringValue.string.should == "Ancestors"
+    node.ancestorNode.children.should == String.ancestors[1..-1].map do |mod|
+      ModNode.alloc.initWithObject(mod, stringValue: mod.name)
+    end
   end
 
-  #it "includes an instance variables node" do
-    #@object.instance_variable_set(:@an_instance_variable, true)
-    #@node.children[3].should == @node.instanceVariablesNode
-  #end
+  it "returns a list of children" do
+    ModNode.children.should == [
+      :modTypeNode, :ancestorNode,
+      :publicMethodsNode, :objcMethodsNode,
+      :instanceVariablesNode
+    ]
+  end
 end

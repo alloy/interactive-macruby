@@ -44,7 +44,7 @@ module IRB
       end
 
       def ==(other)
-        other.class == self.class && other.prefix == prefix && other.stringValue == stringValue && other.children == children
+        other.class == self.class && other.prefix == prefix && other.stringValue == stringValue
       end
 
       def to_s
@@ -93,6 +93,17 @@ module IRB
     # Object wrapper nodes
 
     class ObjectNode < ExpandableNode
+      class << self
+        attr_accessor :children
+      end
+
+      self.children = [
+        :classNode,
+        :publicMethodsNode,
+        :objcMethodsNode,
+        :instanceVariablesNode
+      ]
+
       def initWithObject(object)
         if init
           @object = object
@@ -105,17 +116,12 @@ module IRB
       end
 
       def children
-        @children ||= [
-          classNode,
-          publicMethodsNode,
-          objcMethodsNode,
-          instanceVariablesNode,
-        ]
+        @children ||= self.class.children.map { |m| send(m) }.compact
       end
 
       def classNode
-        ClassNode.alloc.initWithObject(@object.class,
-                          stringValue: "Class: #{@object.class.name}")
+        ModNode.alloc.initWithObject(@object.class,
+                        stringValue: "Class: #{@object.class.name}")
       end
 
       def publicMethodsNode
@@ -149,54 +155,26 @@ module IRB
       end
     end
 
-    class ClassNode < ObjectNode
-      def children
-        []
-      end
-    end
+    class ModNode < ObjectNode
+      self.children = [
+        :modTypeNode,
+        :ancestorNode,
+        :publicMethodsNode,
+        :objcMethodsNode,
+        :instanceVariablesNode
+      ]
 
-    class ResultNode < ExpandableNode
-      def children
-        @children ||= [
-          modTypeNode,
-          classDescriptionNode,
-          ancestorsDescriptionNode,
-          publicMethodsDescriptionNode,
-          objcMethodsDescriptionNode,
-          instanceVariablesNode,
-        ].compact
-      end
-      
-      def classDescriptionNode
-        if @object.is_a?(Class)
-          if klass = @object.superclass
-            string = attributedString("Superclass: #{klass.name}")
-          end
-        else
-          klass = @object.class
-          string = attributedString("Class: #{klass.name}")
-        end
-        ResultNode.alloc.initWithObject(klass, stringRepresentation: string) if klass
-      end
-      
       def modTypeNode
-        if @object.is_a?(Module)
-          string = attributedString("Type: #{@object.class == Class ? 'Class' : 'Module'}")
-          BasicNode.alloc.initWithStringRepresentation(string)
-        end
+        BasicNode.alloc.initWithStringValue("Type: #{@object.class == Class ? 'Class' : 'Module'}")
       end
-      
-      def ancestorsDescriptionNode
-        if @object.is_a?(Class)
-          BlockListNode.alloc.initWithBlockAndStringRepresentation(attributedString("Ancestors")) do
-            @object.ancestors.map do |ancestor|
-              ResultNode.alloc.initWithObject(ancestor,
-                        stringRepresentation: attributedString(ancestor.name))
-            end
+
+      def ancestorNode
+        BlockListNode.alloc.initWithBlockAndStringValue("Ancestors") do
+          @object.ancestors[1..-1].map do |mod|
+            ModNode.alloc.initWithObject(mod, stringValue: mod.name)
           end
         end
       end
     end
   end
 end
-
