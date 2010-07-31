@@ -4,31 +4,32 @@ require 'node'
 class IRBViewController < NSViewController
   include IRB::Cocoa::Helper
   include IRB::Cocoa
-  
+
   PROMPT = "prompt"
   VALUE  = "value"
   EMPTY  = Helper.attributedString("")
-  
+
   attr_reader :output
-  
+
   def initWithObject(object, binding: binding, delegate: delegate)
     if init
-      @rows = []
-      @rowsWhereHeightChanged = NSMutableIndexSet.indexSet
       @delegate = delegate
-      
+
+      @rows = []
+      @heightOfChangedRows = {}
+
       @history = []
       @currentHistoryIndex = 0
-      
+
       @textFieldUsedForRowHeight = NSTextField.new
       @textFieldUsedForRowHeight.bezeled = false
       @textFieldUsedForRowHeight.bordered = false
 
       @colorizationFormatter = IRB::Cocoa::ColoredFormatter.new
       setupIRBForObject(object, binding: binding)
-      
+
       setupDataCells
-      
+
       # TODO is this the best way to make the input cell become key?
       performSelector('editInputCell', withObject: nil, afterDelay: 0)
       
@@ -171,23 +172,26 @@ class IRBViewController < NSViewController
     if item == :input
       16
     else
+      return @heightOfChangedRows[item] if @heightOfChangedRows[item]
       unless height = item.rowHeight
         string = item.value
         width = outlineView.outlineTableColumn.width
         if string.string.include?("\n") || string.size.width > width
-          @rowsWhereHeightChanged.addIndex(@rows.index(item))
           @textFieldUsedForRowHeight.attributedStringValue = string
           size = @textFieldUsedForRowHeight.cell.cellSizeForBounds(NSMakeRect(0, 0, width, 1000000))
           height = size.height
+          @heightOfChangedRows[item] = height
         end
       end
       height || 16
     end
   end
 
+  # Tell the outline view to remove all row height caches, let's see how it goes
   def outlineViewColumnDidResize(_)
-    view.outlineView.noteHeightOfRowsWithIndexesChanged(@rowsWhereHeightChanged)
-    @rowsWhereHeightChanged = NSMutableIndexSet.indexSet
+    indices = NSIndexSet.indexSetWithIndexesInRange(NSMakeRange(0, @rows.length))
+    view.outlineView.noteHeightOfRowsWithIndexesChanged(indices)
+    @heightOfChangedRows = {}
   end
 
   private
