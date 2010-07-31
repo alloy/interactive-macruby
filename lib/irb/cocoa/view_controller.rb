@@ -43,7 +43,6 @@ class IRBViewController < NSViewController
   
   def receivedResult(result)
     @rows << ObjectNode.nodeForObject(result)
-    p @rows.last
     updateOutlineView
   end
   
@@ -146,10 +145,12 @@ class IRBViewController < NSViewController
   end
   
   def outlineView(outlineView, setObjectValue: input, forTableColumn: column, byItem: item)
-    @rows << BasicNode.alloc.initWithPrefix(@context.prompt, value: input)
-    processInput(input)
+    unless input.empty?
+      @rows << BasicNode.alloc.initWithPrefix(@context.prompt, value: input)
+      processInput(input)
+    end
   end
-  
+
   def outlineView(outlineView, dataCellForTableColumn: column, item: item)
     #puts 'dataCell' #, item, ''
     if column
@@ -160,9 +161,18 @@ class IRBViewController < NSViewController
       end
     end
   end
-  
+
+  def outlineView(outlineView, heightOfRowByItem: item)
+    if item.is_a?(NSImageNode)
+      height = item.object.size.height
+      height > 100 ? 100 : height
+    else
+      16
+    end
+  end
+
   private
-  
+
   def addToHistory(line)
     @history << line
     @currentHistoryIndex = @history.size
