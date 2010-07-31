@@ -50,6 +50,10 @@ module IRB
       def to_s
         stringValue.string
       end
+
+      def dataCellTypeForColumn(column)
+        NSTextFieldCell
+      end
     end
 
     class ExpandableNode < BasicNode
@@ -203,6 +207,9 @@ module IRB
     end
 
     class NSImageNode < ObjectNode
+      def dataCellTypeForColumn(column)
+        column == "stringValue" ? NSImageCell : NSTextFieldCell
+      end
     end
   end
 end

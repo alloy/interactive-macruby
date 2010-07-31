@@ -35,6 +35,11 @@ describe "BasicNode" do
     @node.prefix.string.should == "irb(main)>"
     @node.stringValue.string.should == "42"
   end
+
+  it "returns NSTextFieldCell as the type of data cell to use to display prefix and stringValue" do
+    @node.dataCellTypeForColumn('prefix').should == NSTextFieldCell
+    @node.dataCellTypeForColumn('stringValue').should == NSTextFieldCell
+  end
 end
 
 describe "ExpandableNode" do

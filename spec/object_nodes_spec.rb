@@ -52,21 +52,10 @@ describe "An ObjectNode instance" do
   it "returns a BlockListNode with the object's instance variables" do
     @node.instanceVariablesNode.should == nil
 
-    var = Object.new
-    @object.instance_variable_set(:@an_instance_variable, var)
-
-    # TODO: No idea why this fails... Work around it by testing individual parts
-    #@node.instanceVariablesNode.children.should == [
-      #ObjectNode.alloc.initWithObject(var, stringValue: "@an_instance_variable")
-    #]
-
-    child = @node.instanceVariablesNode.children.first
-    node = ObjectNode.alloc.initWithObject(var, stringValue: "@an_instance_variable")
-    child.stringValue.should == node.stringValue
-    child.object.should == node.object
-    child.children.should == node.children
-    child.class.should == node.class
-    child.prefix.should == node.prefix
+    @object.instance_variable_set(:@an_instance_variable, :ok)
+    @node.instanceVariablesNode.children.should == [
+      ObjectNode.alloc.initWithObject(:ok, stringValue: "@an_instance_variable")
+    ]
   end
 
   it "collects all children nodes, without nil values" do
@@ -145,7 +134,13 @@ describe "ModNode" do
 end
 
 describe "NSImageNode" do
-  it "returns an image dataCell" do
-    flunk "TODO"
+  before do
+    @image = NSImage.alloc.init
+    @node = NSImageNode.alloc.initWithObject(@image)
+  end
+
+  it "returns NSImageCell as the data cell to use for the stringValue column" do
+    @node.dataCellTypeForColumn('prefix').should == NSTextFieldCell
+    @node.dataCellTypeForColumn('stringValue').should == NSImageCell
   end
 end
