@@ -127,18 +127,14 @@ module IRB
       def publicMethodsNode
         methods = @object.methods(false)
         unless methods.empty?
-          BlockListNode.alloc.initWithBlockAndStringValue("Public methods") do
-            methods.map { |name| BasicNode.alloc.initWithStringValue(name) }
-          end
+          ListNode.alloc.initWithObject(methods, stringValue: "Public methods")
         end
       end
 
       def objcMethodsNode
         methods = @object.methods(false, true) - @object.methods(false)
         unless methods.empty?
-          BlockListNode.alloc.initWithBlockAndStringValue("Objective-C methods") do
-            methods.map { |name| BasicNode.alloc.initWithStringValue(name) }
-          end
+          ListNode.alloc.initWithObject(methods, stringValue: "Objective-C methods")
         end
       end
 
