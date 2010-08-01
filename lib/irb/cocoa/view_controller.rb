@@ -29,12 +29,7 @@ class DOMHTMLElement
 end
 
 class IRBViewController < NSViewController
-  include IRB::Cocoa::Helper
   include IRB::Cocoa
-
-  PROMPT = "prompt"
-  VALUE  = "value"
-  EMPTY  = Helper.attributedString("")
 
   attr_reader :output
 
@@ -72,7 +67,8 @@ class IRBViewController < NSViewController
     # TODO: this is a hack to make sure the method is exposed to the objc runtime
     respondsToSelector('childrenTableForNode:')
 
-    processInput("Object.new")
+    processInput("{ :foo => 123, 'bar' => [(1..2)] }")
+    #processInput("Object.new")
     #processInput("raise 'foo'")
     #processInput("sleep 10; quit")
   end
@@ -133,8 +129,8 @@ class IRBViewController < NSViewController
     row.id           = node.id
     prefix.className = "prefix#{' expandable not-expanded' if node.expandable?}"
     value.className  = "value"
-    prefix.innerText = node.prefix.string
-    value.innerText  = node.value.string
+    prefix.innerHTML = node.prefix
+    value.innerHTML  = node.value
 
     row.appendChild(prefix)
     row.appendChild(value)
@@ -192,7 +188,7 @@ class IRBViewController < NSViewController
       if @currentHistoryIndex < @history.size
         @currentHistoryIndex += 1
         line = @history[@currentHistoryIndex]
-        textView.string = line ? line : EMPTY
+        textView.string = line ? line : ''
       else
         NSBeep()
       end

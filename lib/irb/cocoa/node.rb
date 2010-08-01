@@ -1,32 +1,21 @@
 module IRB
   module Cocoa
-    DEFAULT_ATTRIBUTES = { NSFontAttributeName => NSFont.fontWithName("Menlo Regular", size: 11) }
-
-    module Helper
-      def attributedString(string)
-        NSAttributedString.alloc.initWithString(string, attributes: DEFAULT_ATTRIBUTES)
-      end
-      module_function :attributedString
-    end
-
     class BasicNode
-      include Helper
-
-      EMPTY_STRING = Helper.attributedString("")
+      EMPTY_STRING = ""
       EMPTY_ARRAY = []
 
       attr_reader :value
 
       def initWithvalue(value)
         if init
-          @value = value.is_a?(NSAttributedString) ? value : attributedString(value)
+          @value = value
           self
         end
       end
 
       def initWithPrefix(prefix, value: value)
         if initWithvalue(value)
-          @prefix = prefix.is_a?(NSAttributedString) ? prefix : attributedString(prefix)
+          @prefix = prefix
           self
         end
       end
@@ -50,15 +39,7 @@ module IRB
       end
 
       def to_s
-        value.string
-      end
-
-      def dataCellTypeForColumn(column)
-        NSTextFieldCell
-      end
-
-      def rowHeight
-        #16
+        value
       end
     end
 
@@ -107,7 +88,7 @@ module IRB
         def nodeForObject(object)
           klass = case object
           when Module then ModNode
-          when NSImage then NSImageNode
+          #when NSImage then NSImageNode
           else
             ObjectNode
           end
@@ -217,17 +198,6 @@ module IRB
 
       def value
         @object
-      end
-
-      def dataCellTypeForColumn(column)
-        column == "value" ? NSImageCell : NSTextFieldCell
-      end
-
-      def rowHeight
-        @rowHeight ||= begin
-          height = @object.size.height.floor
-          height > 100 ? 100 : height
-        end
       end
     end
   end
