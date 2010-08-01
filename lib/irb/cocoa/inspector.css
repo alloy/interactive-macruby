@@ -9,3 +9,20 @@ td.prefix
 	text-align: right;
 	vertical-align: text-top;
 }
+
+tr.expandable td.prefix
+{
+	min-width: 11px;
+	background-repeat: no-repeat;
+	background-position: right top;
+}
+
+td.prefix.not-expanded
+{
+	background-image: url('images/disclosureTriangleSmallRight.png');
+}
+
+td.prefix.expanded
+{
+	background-image: url('images/disclosureTriangleSmallDown.png');
+}
