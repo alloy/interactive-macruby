@@ -27,7 +27,7 @@ class IRBViewController < NSViewController
       #@textFieldUsedForRowHeight.bordered = false
 
       #@colorizationFormatter = IRB::Cocoa::ColoredFormatter.new
-      #setupIRBForObject(object, binding: binding)
+      setupIRBForObject(object, binding: binding)
 
       #setupDataCells
 
@@ -52,20 +52,33 @@ class IRBViewController < NSViewController
   def webView(webView, didFinishLoadForFrame: frame)
     @document = view.mainFrame.DOMDocument
     @webScriptConsole = view.windowScriptObject.evaluateWebScript('IMConsole')
-    receivedOutput("hahahahahaha!")
-    receivedOutput("hahahahahaha!")
-    receivedOutput("hahahahahaha!")
-    receivedOutput("hahahahahaha!")
-    eceivedOutput("hahahahahaha!")
+
+    processInput("Object.new")
+  end
+
+  def addConsoleNode(node)
+    @webScriptConsole.callWebScriptMethod('addRow', withArguments: [node.toElement(@document)])
+  end
+
+  def processInput(input)
+    #addToHistory(input)
+
+    node = BasicNode.alloc.initWithPrefix(@context.prompt, value: input)
+    addConsoleNode(node)
+
+    @thread[:input] = input
+    @thread.run
+  end
+
+  def receivedResult(result)
+    #node = ObjectNode.nodeForObject(result)
+    node = ObjectNode.alloc.initWithObject(result)
+    addConsoleNode(node)
   end
 
   def receivedOutput(output)
     node = BasicNode.alloc.initWithvalue(output)
     addConsoleNode(node)
-  end
-
-  def addConsoleNode(node)
-    @webScriptConsole.callWebScriptMethod('addRow', withArguments: [node.toElement(@document)])
   end
 
   #
@@ -76,11 +89,6 @@ class IRBViewController < NSViewController
   # context callback methods
   
   def needsMoreInput
-    updateOutlineView
-  end
-  
-  def receivedResult(result)
-    @rows << ObjectNode.nodeForObject(result)
     updateOutlineView
   end
   
@@ -226,12 +234,6 @@ class IRBViewController < NSViewController
   def addToHistory(line)
     @history << line
     @currentHistoryIndex = @history.size
-  end
-  
-  def processInput(input)
-    addToHistory(input)
-    @thread[:input] = input
-    @thread.run
   end
   
   def setupIRBForObject(object, binding: binding)
