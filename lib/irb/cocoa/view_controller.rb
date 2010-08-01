@@ -31,6 +31,8 @@ end
 class IRBViewController < NSViewController
   include IRB::Cocoa
 
+  INPUT_FIELD_HEIGHT = 22
+
   attr_reader :output
 
   def initWithObject(object, binding: binding, delegate: delegate)
@@ -52,27 +54,48 @@ class IRBViewController < NSViewController
     webView = WebView.alloc.init
     webView.frameLoadDelegate = self
 
-    inputTextField = NSTextField.alloc.init
-    inputTextField.font = NSFont.fontWithName('Menlo Regular', size: 11)
-    inputTextField.target = self
-    inputTextField.action = "inputFromInputField:"
+    @inputField = NSTextField.alloc.init
+    @inputField.bordered = false
+    @inputField.font = NSFont.fontWithName('Menlo Regular', size: 11)
+    @inputField.target = self
+    @inputField.action = "inputFromInputField:"
 
     splitView = NSSplitView.alloc.init
+    splitView.delegate = self
     splitView.vertical = false
+    splitView.dividerStyle = NSSplitViewDividerStylePaneSplitter
     splitView.addSubview(webView)
-    splitView.addSubview(inputTextField)
+    splitView.addSubview(@inputField)
     self.view = splitView
 
     resourcePath = File.dirname(__FILE__)
     path = File.join(resourcePath, 'inspector.html')
     webView.mainFrame.loadHTMLString(File.read(path), baseURL: NSURL.fileURLWithPath(resourcePath))
+
+    # TODO: possibly move this to a subclass
+    def splitView.viewDidMoveToWindow
+      super
+      window.makeFirstResponder(subviews.last)
+    end
   end
 
-  def inputFromInputField(inputField)
-    input = inputField.stringValue
-    unless input.empty?
-      processInput(input)
-      inputField.stringValue = ''
+  # splitView delegate methods
+
+  def splitView(splitView, constrainSplitPosition: position, ofSubviewAt: index)
+    max = view.frameSize.height - INPUT_FIELD_HEIGHT - splitView.dividerThickness
+    position > max ? max : position
+  end
+
+  def splitView(splitView, resizeSubviewsWithOldSize: oldSize)
+    splitView.adjustSubviews
+
+    newSize = splitView.frameSize
+    webView, inputField = splitView.subviews
+
+    if oldSize.width == 0 || inputField.frameSize.height < INPUT_FIELD_HEIGHT
+      dividerThickness  = splitView.dividerThickness      
+      webView.frameSize = NSMakeSize(newSize.width, newSize.height - (INPUT_FIELD_HEIGHT + dividerThickness))
+      inputField.frame  = NSMakeRect(0, newSize.height - INPUT_FIELD_HEIGHT, newSize.width, INPUT_FIELD_HEIGHT)
     end
   end
 
@@ -151,7 +174,15 @@ class IRBViewController < NSViewController
     row
   end
 
-  # context related methods
+  # input/output related methods
+
+  def inputFromInputField(inputField)
+    input = inputField.stringValue
+    unless input.empty?
+      inputField.enabled = false
+      processInput(input)
+    end
+  end
 
   def processInput(input)
     #addToHistory(input)
@@ -165,6 +196,9 @@ class IRBViewController < NSViewController
 
   def receivedResult(result)
     addConsoleNode(ObjectNode.nodeForObject(result))
+    @inputField.stringValue = ''
+    @inputField.enabled = true
+    view.window.makeFirstResponder(@inputField)
   end
 
   def receivedOutput(output)

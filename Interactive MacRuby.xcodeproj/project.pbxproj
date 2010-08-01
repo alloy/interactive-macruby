@@ -49,7 +49,6 @@
 		517FC85811FB850200B8B584 /* application_delegate.rb in Resources */ = {isa = PBXBuildFile; fileRef = 517FC85711FB850200B8B584 /* application_delegate.rb */; };
 		517FC86011FB874100B8B584 /* window_controller.rb in Resources */ = {isa = PBXBuildFile; fileRef = 517FC85F11FB874100B8B584 /* window_controller.rb */; };
 		517FC86911FB88E900B8B584 /* view_controller.rb in Resources */ = {isa = PBXBuildFile; fileRef = 517FC86711FB88E900B8B584 /* view_controller.rb */; };
-		517FC86A11FB88E900B8B584 /* view.rb in Resources */ = {isa = PBXBuildFile; fileRef = 517FC86811FB88E900B8B584 /* view.rb */; };
 		517FCA2D11FC5EBE00B8B584 /* irb_ext.rb in Resources */ = {isa = PBXBuildFile; fileRef = 517FCA2C11FC5EBE00B8B584 /* irb_ext.rb */; };
 		51B455CB1203AC4700BA7EB4 /* node.rb in Resources */ = {isa = PBXBuildFile; fileRef = 51B455CA1203AC4700BA7EB4 /* node.rb */; };
 		51B456F412058AF700BA7EB4 /* inspector.css in Resources */ = {isa = PBXBuildFile; fileRef = 51B456F212058AF700BA7EB4 /* inspector.css */; };
@@ -85,7 +84,6 @@
 		517FC85711FB850200B8B584 /* application_delegate.rb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.ruby; path = application_delegate.rb; sourceTree = "<group>"; };
 		517FC85F11FB874100B8B584 /* window_controller.rb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.ruby; name = window_controller.rb; path = lib/irb/cocoa/window_controller.rb; sourceTree = "<group>"; };
 		517FC86711FB88E900B8B584 /* view_controller.rb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.ruby; name = view_controller.rb; path = lib/irb/cocoa/view_controller.rb; sourceTree = "<group>"; };
-		517FC86811FB88E900B8B584 /* view.rb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.ruby; name = view.rb; path = lib/irb/cocoa/view.rb; sourceTree = "<group>"; };
 		517FCA2C11FC5EBE00B8B584 /* irb_ext.rb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.ruby; name = irb_ext.rb; path = lib/irb/cocoa/irb_ext.rb; sourceTree = "<group>"; };
 		51B455CA1203AC4700BA7EB4 /* node.rb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.ruby; name = node.rb; path = lib/irb/cocoa/node.rb; sourceTree = "<group>"; };
 		51B456F212058AF700BA7EB4 /* inspector.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; name = inspector.css; path = lib/irb/cocoa/inspector.css; sourceTree = "<group>"; };
@@ -113,7 +111,6 @@
 			children = (
 				517FC85F11FB874100B8B584 /* window_controller.rb */,
 				517FC86711FB88E900B8B584 /* view_controller.rb */,
-				517FC86811FB88E900B8B584 /* view.rb */,
 				51B455CA1203AC4700BA7EB4 /* node.rb */,
 				517FCA2C11FC5EBE00B8B584 /* irb_ext.rb */,
 				517FC85711FB850200B8B584 /* application_delegate.rb */,
@@ -244,7 +241,6 @@
 				517FC85811FB850200B8B584 /* application_delegate.rb in Resources */,
 				517FC86011FB874100B8B584 /* window_controller.rb in Resources */,
 				517FC86911FB88E900B8B584 /* view_controller.rb in Resources */,
-				517FC86A11FB88E900B8B584 /* view.rb in Resources */,
 				517FCA2D11FC5EBE00B8B584 /* irb_ext.rb in Resources */,
 				51B455CB1203AC4700BA7EB4 /* node.rb in Resources */,
 				51B456F412058AF700BA7EB4 /* inspector.css in Resources */,
