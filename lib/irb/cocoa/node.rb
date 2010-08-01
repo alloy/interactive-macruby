@@ -31,6 +31,8 @@ module IRB
         end
       end
 
+      alias_method :id, :object_id
+
       def prefix
         @prefix || EMPTY_STRING
       end
@@ -55,9 +57,14 @@ module IRB
         row    = document.createElement("tr")
         prefix = document.createElement("td")
         value  = document.createElement("td")
+
+        row.send("setAttribute::", "id", id.to_s)
         prefix.send("setAttribute::", "class", "prefix")
         value.send("setAttribute::", "class", "value")
+
         if expandable?
+          row.send("setAttribute::", "class", "expandable")
+
           image = document.createElement("img")
           image.send("setAttribute::", "src", "images/disclosureTriangleSmallRight.png")
           prefix.appendChild(image)
@@ -65,6 +72,7 @@ module IRB
           prefix.innerText = self.prefix.string
         end
         value.innerText = self.value.string
+
         row.appendChild(prefix)
         row.appendChild(value)
         row

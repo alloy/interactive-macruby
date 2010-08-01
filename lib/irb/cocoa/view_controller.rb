@@ -27,13 +27,16 @@ class IRBViewController < NSViewController
       #@textFieldUsedForRowHeight.bordered = false
 
       #@colorizationFormatter = IRB::Cocoa::ColoredFormatter.new
-      setupIRBForObject(object, binding: binding)
+      #setupIRBForObject(object, binding: binding)
 
       #setupDataCells
 
       ## TODO is this the best way to make the input cell become key?
       #performSelector('editInputCell', withObject: nil, afterDelay: 0)
       
+      @expandableRowToNodeMap = {}
+      setupIRBForObject(object, binding: binding)
+
       self
     end
   end
@@ -53,10 +56,16 @@ class IRBViewController < NSViewController
     @document = view.mainFrame.DOMDocument
     @console = @document.getElementById('console')
 
+    view.windowScriptObject.setValue(self, forKey: "IMViewController")
+
+    # TODO: this is a hack to make sure the method is exposed to the objc runtime
+    respondsToSelector('childrenTableForNode:')
+
     processInput("Object.new")
   end
 
   def addConsoleNode(node)
+    @expandableRowToNodeMap[node.id] = node if node.expandable?
     @console.appendChild(node.toElement(@document))
   end
 
@@ -78,6 +87,24 @@ class IRBViewController < NSViewController
   def receivedOutput(output)
     node = BasicNode.alloc.initWithvalue(output)
     addConsoleNode(node)
+  end
+
+  def childrenTableForNode(id)
+    node = @expandableRowToNodeMap[id.to_i]
+    table = @document.createElement('table')
+    node.children.each do |childNode|
+      @expandableRowToNodeMap[childNode.id] = childNode if childNode.expandable?
+      table.appendChild(childNode.toElement(@document))
+    end
+    table
+  end
+
+  def self.webScriptNameForSelector(sel)
+    'childrenTableForNode' if sel == :'childrenTableForNode:'
+  end
+
+  def self.isSelectorExcludedFromWebScript(sel)
+    sel != :"childrenTableForNode:"
   end
 
   #
