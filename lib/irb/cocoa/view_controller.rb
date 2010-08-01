@@ -49,28 +49,42 @@ class IRBViewController < NSViewController
   def loadView
     NSUserDefaults.standardUserDefaults.registerDefaults('WebKitDeveloperExtras' => true)
     
-    self.view = WebView.alloc.init
-    view.frameLoadDelegate = self
+    webView = WebView.alloc.init
+    webView.frameLoadDelegate = self
+
+    inputTextField = NSTextField.alloc.init
+    inputTextField.font = NSFont.fontWithName('Menlo Regular', size: 11)
+    inputTextField.target = self
+    inputTextField.action = "inputFromInputField:"
+
+    splitView = NSSplitView.alloc.init
+    splitView.vertical = false
+    splitView.addSubview(webView)
+    splitView.addSubview(inputTextField)
+    self.view = splitView
 
     resourcePath = File.dirname(__FILE__)
     path = File.join(resourcePath, 'inspector.html')
-    view.mainFrame.loadHTMLString(File.read(path), baseURL: NSURL.fileURLWithPath(resourcePath))
+    webView.mainFrame.loadHTMLString(File.read(path), baseURL: NSURL.fileURLWithPath(resourcePath))
+  end
+
+  def inputFromInputField(inputField)
+    input = inputField.stringValue
+    unless input.empty?
+      processInput(input)
+      inputField.stringValue = ''
+    end
   end
 
   # WebView related methods
 
   def webView(webView, didFinishLoadForFrame: frame)
-    @document = view.mainFrame.DOMDocument
+    @document = webView.mainFrame.DOMDocument
     @console = @document.getElementById('console')
     @console.send("addEventListener:::", 'click', self, false)
 
     # TODO: this is a hack to make sure the method is exposed to the objc runtime
     respondsToSelector('childrenTableForNode:')
-
-    processInput("{ :foo => 123, 'bar' => [(1..2)] }")
-    #processInput("Object.new")
-    #processInput("raise 'foo'")
-    #processInput("sleep 10; quit")
   end
 
   def self.webScriptNameForSelector(sel)
