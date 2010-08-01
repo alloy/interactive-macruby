@@ -14,6 +14,8 @@ class IRBViewController < NSViewController
 
   def initWithObject(object, binding: binding, delegate: delegate)
     if init
+      NSUserDefaults.standardUserDefaults.registerDefaults('WebKitDeveloperExtras' => true)
+
       #@delegate = delegate
 
       #@rows = []
@@ -41,8 +43,6 @@ class IRBViewController < NSViewController
   def loadView
     self.view = WebView.alloc.init
     resourcePath = File.dirname(__FILE__)
-    p resourcePath
-    #path = File.expand_path('../inspector.html', __FILE__)
     path = File.join(resourcePath, 'inspector.html')
     view.mainFrame.loadHTMLString(File.read(path), baseURL: NSURL.fileURLWithPath(resourcePath))
   end

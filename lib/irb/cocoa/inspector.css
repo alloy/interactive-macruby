@@ -298,7 +298,7 @@ body.attached #main {
 
 body.drawer-visible #main-status-bar {
     height: 24px;
-    background-image: url(Images/statusbarResizerVertical.png), url(Images/statusbarBackground.png);
+    /*background-image: url(Images/statusbarResizerVertical.png), url(Images/statusbarBackground.png);*/
     background-repeat: no-repeat, repeat-x;
     background-position: right center, center;
     cursor: row-resize;
@@ -314,7 +314,7 @@ body.drawer-visible #main-panels {
 
 .status-bar {
     background-color: rgb(235, 235, 235);
-    background-image: url(Images/statusbarBackground.png);
+    /*background-image: url(Images/statusbarBackground.png);*/
     background-repeat: repeat-x;
     white-space: nowrap;
     height: 23px;
@@ -486,7 +486,7 @@ body.port-qt #dock-status-bar-item {
     right: 0;
     height: 200px;
     background-color: white;
-    background-image: url(Images/statusbarBottomBackground.png);
+    /*background-image: url(Images/statusbarBottomBackground.png);*/
     background-repeat: repeat-x;
     background-position: bottom;
 }
