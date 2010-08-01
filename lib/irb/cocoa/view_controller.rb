@@ -15,6 +15,10 @@ class DOMHTMLElement
     getAttribute('id')
   end
 
+  def id=(id)
+    send("setAttribute::", "id", id.to_s)
+  end
+
   def hide!
     style.display = 'none'
   end
@@ -36,27 +40,11 @@ class IRBViewController < NSViewController
 
   def initWithObject(object, binding: binding, delegate: delegate)
     if init
-      #@delegate = delegate
-
-      #@rows = []
-      #@heightOfChangedRows = {}
-
+      @delegate = delegate
       #@history = []
       #@currentHistoryIndex = 0
-
-      #@textFieldUsedForRowHeight = NSTextField.new
-      #@textFieldUsedForRowHeight.bezeled = false
-      #@textFieldUsedForRowHeight.bordered = false
-
-      #@colorizationFormatter = IRB::Cocoa::ColoredFormatter.new
-      #setupIRBForObject(object, binding: binding)
-
-      #setupDataCells
-
-      ## TODO is this the best way to make the input cell become key?
-      #performSelector('editInputCell', withObject: nil, afterDelay: 0)
-      
       @expandableRowToNodeMap = {}
+
       setupIRBForObject(object, binding: binding)
 
       self
@@ -74,6 +62,8 @@ class IRBViewController < NSViewController
     view.mainFrame.loadHTMLString(File.read(path), baseURL: NSURL.fileURLWithPath(resourcePath))
   end
 
+  # WebView related methods
+
   def webView(webView, didFinishLoadForFrame: frame)
     @document = view.mainFrame.DOMDocument
     @console = @document.getElementById('console')
@@ -83,20 +73,30 @@ class IRBViewController < NSViewController
     respondsToSelector('childrenTableForNode:')
 
     processInput("Object.new")
+    #processInput("raise 'foo'")
+    #processInput("sleep 10; quit")
   end
 
+  def self.webScriptNameForSelector(sel)
+    'childrenTableForNode' if sel == :'childrenTableForNode:'
+  end
+
+  def self.isSelectorExcludedFromWebScript(sel)
+    sel != :"childrenTableForNode:"
+  end
+
+  # Expands, or collapses, an expandable node
   def handleEvent(event)
     prefix = event.target
     if prefix.hasClassName?('expandable')
-      row = prefix.parentNode
+      row   = prefix.parentNode
       value = row.lastChild
       if prefix.hasClassName?('not-expanded')
-        table = value.lastChild
-        if table.is_a?(DOMHTMLTableElement)
+        # if there is a table, show it, otherwise create and add one
+        if (table = value.lastChild) && table.is_a?(DOMHTMLTableElement)
           table.show!
         else
-          table = childrenTableForNode(row.id.to_i)
-          value.appendChild(table)
+          value.appendChild(childrenTableForNode(row.id.to_i))
         end
         prefix.replaceClassName('not-expanded', 'expanded')
       else
@@ -106,10 +106,42 @@ class IRBViewController < NSViewController
     end
   end
 
-  def addConsoleNode(node)
+  # DOM element related methods
+
+  def addNode(node, toElement: element)
     @expandableRowToNodeMap[node.id] = node if node.expandable?
-    @console.appendChild(node.toElement(@document))
+    element.appendChild(rowForNode(node))
   end
+
+  def addConsoleNode(node)
+    addNode(node, toElement: @console)
+  end
+
+  def childrenTableForNode(id)
+    puts "Get children for node: #{id}"
+    node = @expandableRowToNodeMap[id]
+    table = @document.createElement('table')
+    node.children.each { |childNode| addNode(childNode, toElement: table) }
+    table
+  end
+
+  def rowForNode(node)
+    row    = @document.createElement("tr")
+    prefix = @document.createElement("td")
+    value  = @document.createElement("td")
+
+    row.id           = node.id
+    prefix.className = "prefix#{' expandable not-expanded' if node.expandable?}"
+    value.className  = "value"
+    prefix.innerText = node.prefix.string
+    value.innerText  = node.value.string
+
+    row.appendChild(prefix)
+    row.appendChild(value)
+    row
+  end
+
+  # context related methods
 
   def processInput(input)
     #addToHistory(input)
@@ -122,57 +154,24 @@ class IRBViewController < NSViewController
   end
 
   def receivedResult(result)
-    node = ObjectNode.nodeForObject(result)
-    addConsoleNode(node)
+    addConsoleNode(ObjectNode.nodeForObject(result))
   end
 
   def receivedOutput(output)
-    node = BasicNode.alloc.initWithvalue(output)
-    addConsoleNode(node)
+    addConsoleNode(BasicNode.alloc.initWithvalue(output))
   end
 
-  def childrenTableForNode(id)
-    puts "Get children for node: #{id}"
-    node = @expandableRowToNodeMap[id]
-    table = @document.createElement('table')
-    node.children.each do |childNode|
-      @expandableRowToNodeMap[childNode.id] = childNode if childNode.expandable?
-      table.appendChild(childNode.toElement(@document))
-    end
-    table
-  end
-
-  def self.webScriptNameForSelector(sel)
-    'childrenTableForNode' if sel == :'childrenTableForNode:'
-  end
-
-  def self.isSelectorExcludedFromWebScript(sel)
-    sel != :"childrenTableForNode:"
-  end
-
-  #
-  # OLD!
-  #
-  ############################
-
-  # context callback methods
-  
-  def needsMoreInput
-    updateOutlineView
-  end
-  
   def receivedException(exception)
-    string = @colorizationFormatter.exception(exception)
-    @rows << BasicNode.alloc.initWithvalue(string)
-    updateOutlineView
+    string = IRB.formatter.exception(exception)
+    addConsoleNode(BasicNode.alloc.initWithvalue(string))
   end
-  
+
   def terminate
     @delegate.send(:irbViewControllerTerminated, self)
   end
-  
+
   # delegate methods of the input cell
-  
+
   def control(control, textView: textView, completions: completions, forPartialWordRange: range, indexOfSelectedItem: item)
     @completion.call(textView.string).map { |s| s[range.location..-1] }
   end
@@ -203,101 +202,6 @@ class IRBViewController < NSViewController
     true
   end
   
-  # outline view data source and delegate methods
-  
-  def outlineView(outlineView, numberOfChildrenOfItem: item)
-    #puts 'count' #, item, ''
-    if item == nil
-      # add one extra which is the input row
-      @rows.size + 1
-    else
-      item.children.size
-    end
-  end
-  
-  def outlineView(outlineView, isItemExpandable: item)
-    #puts 'expandable' #, item, ''
-    case item
-    when BasicNode
-      item.expandable?
-    end
-  end
-  
-  def outlineView(outlineView, child: index, ofItem: item)
-    #puts 'child' #, item, ''
-    if item == nil
-      if index == @rows.size
-        :input
-      else
-        @rows[index]
-      end
-    else
-      item.children[index]
-    end
-  end
-  
-  def outlineView(outlineView, objectValueForTableColumn: column, byItem: item)
-    #puts 'objectValue' #, item, ''
-    result = case item
-    when :input
-      column.identifier == PROMPT ? @context.prompt : EMPTY
-    when BasicNode
-      column.identifier == PROMPT ? item.prefix : item.value
-    end
-    
-    # make sure the prompt column is still wide enough
-    if result && column.identifier == PROMPT
-      width = result.size.width + view.outlineView.indentationPerLevel + 10
-      column.width = width if width > column.width
-    end
-    
-    result #|| EMPTY
-  end
-  
-  def outlineView(outlineView, setObjectValue: input, forTableColumn: column, byItem: item)
-    unless input.empty?
-      @rows << BasicNode.alloc.initWithPrefix(@context.prompt, value: input)
-      processInput(input)
-    end
-  end
-
-  def outlineView(outlineView, dataCellForTableColumn: column, item: item)
-    #puts 'dataCell' #, item, ''
-    if column
-      if item == :input
-        column.identifier == VALUE ? @inputCell : @dataCells[NSTextFieldCell]
-      else
-        @dataCells[item.dataCellTypeForColumn(column.identifier)]
-      end
-    end
-  end
-
-  def outlineView(outlineView, heightOfRowByItem: item)
-    if item == :input
-      16
-    else
-      return @heightOfChangedRows[item] if @heightOfChangedRows[item]
-      unless height = item.rowHeight
-        string = item.value
-        width = outlineView.outlineTableColumn.width
-        if string.string.include?("\n") || string.size.width > width
-          @textFieldUsedForRowHeight.attributedStringValue = string
-          size = @textFieldUsedForRowHeight.cell.cellSizeForBounds(NSMakeRect(0, 0, width, 1000000))
-          height = size.height
-          @heightOfChangedRows[item] = height
-        end
-      end
-      height || 16
-    end
-  end
-
-  # Tell the outline view to remove all row height caches, let's see how it goes
-  def outlineViewColumnDidResize(_)
-    indices = NSIndexSet.indexSetWithIndexesInRange(NSMakeRange(0, @rows.length))
-    view.outlineView.noteHeightOfRowsWithIndexesChanged(indices)
-    @heightOfChangedRows = {}
-  end
-
   private
 
   def addToHistory(line)
@@ -326,42 +230,6 @@ class IRBViewController < NSViewController
         end
       end
     end
-  end
-  
-  def setupDataCells
-    font = IRB::Cocoa::DEFAULT_ATTRIBUTES[NSFontAttributeName]
-    
-    textCell = NSTextFieldCell.alloc.init
-    textCell.font = font
-    # textCell.selectable = true
-    textCell.editable = false
-
-    imageCell = NSImageCell.alloc.init
-    imageCell.imageAlignment = NSImageAlignLeft
-
-    @dataCells = { NSTextFieldCell => textCell, NSImageCell => imageCell }
-
-    @inputCell = NSTextFieldCell.alloc.init
-    @inputCell.font = font
-    @inputCell.editable = true
-    @inputCell.bordered = false
-    @inputCell.focusRingType = NSFocusRingTypeNone
-  end
-
-  def updateOutlineView
-    view.outlineView.reloadData
-    editInputCell
-  end
-  
-  def editInputCell
-    if @registered.nil? && window = view.window
-      @registered = true
-      NSNotificationCenter.defaultCenter.addObserver(self,
-                                           selector: 'editInputCell',
-                                               name: NSWindowDidBecomeKeyNotification,
-                                             object: window)
-    end
-    view.outlineView.editColumn(1, row: @rows.size, withEvent: nil, select: false)
   end
 end
 
