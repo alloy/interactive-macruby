@@ -51,13 +51,13 @@ class IRBViewController < NSViewController
 
   def webView(webView, didFinishLoadForFrame: frame)
     @document = view.mainFrame.DOMDocument
-    @webScriptConsole = view.windowScriptObject.evaluateWebScript('IMConsole')
+    @console = @document.getElementById('console')
 
     processInput("Object.new")
   end
 
   def addConsoleNode(node)
-    @webScriptConsole.callWebScriptMethod('addRow', withArguments: [node.toElement(@document)])
+    @console.appendChild(node.toElement(@document))
   end
 
   def processInput(input)
@@ -71,8 +71,7 @@ class IRBViewController < NSViewController
   end
 
   def receivedResult(result)
-    #node = ObjectNode.nodeForObject(result)
-    node = ObjectNode.alloc.initWithObject(result)
+    node = ObjectNode.nodeForObject(result)
     addConsoleNode(node)
   end
 

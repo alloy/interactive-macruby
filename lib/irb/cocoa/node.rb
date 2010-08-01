@@ -57,7 +57,13 @@ module IRB
         value  = document.createElement("td")
         prefix.send("setAttribute::", "class", "prefix")
         value.send("setAttribute::", "class", "value")
-        prefix.innerText = self.prefix.string
+        if expandable?
+          image = document.createElement("img")
+          image.send("setAttribute::", "src", "images/disclosureTriangleSmallRight.png")
+          prefix.appendChild(image)
+        else
+          prefix.innerText = self.prefix.string
+        end
         value.innerText = self.value.string
         row.appendChild(prefix)
         row.appendChild(value)
