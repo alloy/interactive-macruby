@@ -66,7 +66,7 @@ module IRB
 
       def process_line(line)
         result = super
-        send_to_view_controller("needsMoreInput") if @source.level > 0
+        send_to_view_controller("makeInputFieldPromptForInput") if @source.level > 0
         result
       end
 

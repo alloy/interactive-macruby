@@ -151,7 +151,6 @@ class IRBViewController < NSViewController
   end
 
   def childrenTableForNode(id)
-    puts "Get children for node: #{id}"
     node = @expandableRowToNodeMap[id]
     table = @document.createElement('table')
     node.children.each { |childNode| addNode(childNode, toElement: table) }
@@ -176,6 +175,12 @@ class IRBViewController < NSViewController
 
   # input/output related methods
 
+  def makeInputFieldPromptForInput
+    @inputField.stringValue = ''
+    @inputField.enabled = true
+    view.window.makeFirstResponder(@inputField) 
+  end
+
   def inputFromInputField(inputField)
     input = inputField.stringValue
     unless input.empty?
@@ -196,9 +201,7 @@ class IRBViewController < NSViewController
 
   def receivedResult(result)
     addConsoleNode(ObjectNode.nodeForObject(result))
-    @inputField.stringValue = ''
-    @inputField.enabled = true
-    view.window.makeFirstResponder(@inputField)
+    makeInputFieldPromptForInput
   end
 
   def receivedOutput(output)
