@@ -38,8 +38,8 @@ class IRBViewController < NSViewController
   def initWithObject(object, binding: binding, delegate: delegate)
     if init
       @delegate = delegate
-      #@history = []
-      #@currentHistoryIndex = 0
+      @history = []
+      @currentHistoryIndex = 0
       @expandableRowToNodeMap = {}
 
       setupIRBForObject(object, binding: binding)
@@ -57,6 +57,7 @@ class IRBViewController < NSViewController
     @inputField = NSTextField.alloc.init
     @inputField.bordered = false
     @inputField.font = NSFont.fontWithName('Menlo Regular', size: 11)
+    @inputField.delegate = self
     @inputField.target = self
     @inputField.action = "inputFromInputField:"
 
@@ -195,13 +196,18 @@ class IRBViewController < NSViewController
   end
 
   def processInput(input)
-    #addToHistory(input)
+    addToHistory(input)
 
     node = BasicNode.alloc.initWithPrefix(@context.prompt, value: input)
     addConsoleNode(node)
 
     @thread[:input] = input
     @thread.run
+  end
+
+  def addToHistory(line)
+    @history << line
+    @currentHistoryIndex = @history.size
   end
 
   def receivedResult(result)
@@ -254,14 +260,9 @@ class IRBViewController < NSViewController
     end
     true
   end
-  
+
   private
 
-  def addToHistory(line)
-    @history << line
-    @currentHistoryIndex = @history.size
-  end
-  
   def setupIRBForObject(object, binding: binding)
     @context = IRB::Cocoa::Context.new(self, object, binding)
     @output = IRB::Cocoa::Output.new(self)
