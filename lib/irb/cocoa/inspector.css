@@ -26,3 +26,20 @@ td.prefix.expanded
 {
 	background-image: url('images/disclosureTriangleSmallDown.png');
 }
+
+span.black		{ color: black;   }
+span.red		{ color: red;     }
+span.green		{ color: green;   }
+span.brown		{ color: #A52A2A; }
+span.blue		{ color: blue;    }
+span.cyan		{ color: #00FFFF; }
+span.purple		{ color: purple;  }
+span.light_gray		{ color: #778899; }
+span.dark_gray		{ color: #696969; }
+span.light_red		{ color: #CD5C5C; }
+span.light_green	{ color: #90EE90; }
+span.yellow		{ color: yellow;  }
+span.light_blue		{ color: #ADD8E6; }
+span.light_cyan		{ color: #E0FFFF; }
+span.light_purple	{ color: #9370D8; }
+span.white		{ color: white;   }
