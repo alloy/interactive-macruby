@@ -51,6 +51,19 @@ module IRB
         value.string
       end
 
+      def toElement(document)
+        row    = document.createElement("tr")
+        prefix = document.createElement("td")
+        value  = document.createElement("td")
+        prefix.send("setAttribute::", "class", "prefix")
+        value.send("setAttribute::", "class", "value")
+        prefix.innerText = self.prefix.string
+        value.innerText = self.value.string
+        row.appendChild(prefix)
+        row.appendChild(value)
+        row
+      end
+
       def dataCellTypeForColumn(column)
         NSTextFieldCell
       end

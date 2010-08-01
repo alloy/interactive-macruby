@@ -14,8 +14,6 @@ class IRBViewController < NSViewController
 
   def initWithObject(object, binding: binding, delegate: delegate)
     if init
-      NSUserDefaults.standardUserDefaults.registerDefaults('WebKitDeveloperExtras' => true)
-
       #@delegate = delegate
 
       #@rows = []
@@ -41,12 +39,40 @@ class IRBViewController < NSViewController
   end
   
   def loadView
+    NSUserDefaults.standardUserDefaults.registerDefaults('WebKitDeveloperExtras' => true)
+    
     self.view = WebView.alloc.init
+    view.frameLoadDelegate = self
+
     resourcePath = File.dirname(__FILE__)
     path = File.join(resourcePath, 'inspector.html')
     view.mainFrame.loadHTMLString(File.read(path), baseURL: NSURL.fileURLWithPath(resourcePath))
   end
-  
+
+  def webView(webView, didFinishLoadForFrame: frame)
+    @document = view.mainFrame.DOMDocument
+    @webScriptConsole = view.windowScriptObject.evaluateWebScript('IMConsole')
+    receivedOutput("hahahahahaha!")
+    receivedOutput("hahahahahaha!")
+    receivedOutput("hahahahahaha!")
+    receivedOutput("hahahahahaha!")
+    eceivedOutput("hahahahahaha!")
+  end
+
+  def receivedOutput(output)
+    node = BasicNode.alloc.initWithvalue(output)
+    addConsoleNode(node)
+  end
+
+  def addConsoleNode(node)
+    @webScriptConsole.callWebScriptMethod('addRow', withArguments: [node.toElement(@document)])
+  end
+
+  #
+  # OLD!
+  #
+  ############################
+
   # context callback methods
   
   def needsMoreInput
@@ -61,11 +87,6 @@ class IRBViewController < NSViewController
   def receivedException(exception)
     string = @colorizationFormatter.exception(exception)
     @rows << BasicNode.alloc.initWithvalue(string)
-    updateOutlineView
-  end
-  
-  def receivedOutput(output)
-    @rows << BasicNode.alloc.initWithvalue(output)
     updateOutlineView
   end
   
