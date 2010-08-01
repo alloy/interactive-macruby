@@ -4,6 +4,11 @@ body
 	font-size: 11px;
 }
 
+td.value img
+{
+	max-height: 100px;
+}
+
 td.prefix
 {
 	text-align: right;

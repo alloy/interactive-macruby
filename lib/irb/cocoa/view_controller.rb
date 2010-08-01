@@ -3,6 +3,16 @@ require 'irb_ext'
 require 'node'
 require 'cgi'
 
+class NSImage
+  # Returns jpeg file interchange format encoded data for an NSImage regardless of the
+  # original NSImage encoding format.  compressionValue is between 0 and 1.
+  # values 0.6 thru 0.7 are fine for most purposes.
+  def JFIFData(compressionValue)
+    bitmap = NSBitmapImageRep.imageRepWithData(self.TIFFRepresentation)
+    bitmap.representationUsingType(NSJPEGFileType, properties: { NSImageCompressionFactor => compressionValue })
+  end
+end
+
 class DOMHTMLElement
   def hasClassName?(name)
     className.include?(name)
@@ -95,7 +105,7 @@ class IRBViewController < NSViewController
     webView, inputField = splitView.subviews
 
     if oldSize.width == 0 || inputField.frameSize.height < INPUT_FIELD_HEIGHT
-      dividerThickness  = splitView.dividerThickness      
+      dividerThickness  = splitView.dividerThickness
       webView.frameSize = NSMakeSize(newSize.width, newSize.height - (INPUT_FIELD_HEIGHT + dividerThickness))
       inputField.frame  = NSMakeRect(0, newSize.height - INPUT_FIELD_HEIGHT, newSize.width, INPUT_FIELD_HEIGHT)
     end
@@ -104,6 +114,7 @@ class IRBViewController < NSViewController
   # WebView related methods
 
   def webView(webView, didFinishLoadForFrame: frame)
+    @webViewDataSource = webView.mainFrame.dataSource
     @document = webView.mainFrame.DOMDocument
     @bottomDiv = @document.getElementById('bottom')
     @console = @document.getElementById('console')
@@ -173,11 +184,32 @@ class IRBViewController < NSViewController
     prefix.className = "prefix#{' expandable not-expanded' if node.expandable?}"
     value.className  = "value"
     prefix.innerHTML = node.prefix
-    value.innerHTML  = node.value
+    if node.is_a?(NSImageNode)
+      value.appendChild(imageElementForNode(node))
+    else
+      value.innerHTML = node.value
+    end
 
     row.appendChild(prefix)
     row.appendChild(value)
     row
+  end
+
+  # Adds the image data as a WebResource to the webview's data source and
+  # returns a IMG element, referencing the image.
+  def imageElementForNode(node)
+    image = node.object
+    url = "NSImage://#{image.object_id}.jpg"
+
+    @webViewDataSource.addSubresource(WebResource.alloc.initWithData(image.JFIFData(0.75),
+                                                                URL: NSURL.URLWithString(url),
+                                                           MIMEType: "image/jpeg",
+                                                   textEncodingName: nil,
+                                                          frameName: nil))
+
+    element = @document.createElement('img')
+    element.send('setAttribute::', 'src', url)
+    element
   end
 
   # input/output related methods

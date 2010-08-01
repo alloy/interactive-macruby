@@ -88,7 +88,7 @@ module IRB
         def nodeForObject(object)
           klass = case object
           when Module then ModNode
-          #when NSImage then NSImageNode
+          when NSImage then NSImageNode
           else
             ObjectNode
           end
