@@ -3,6 +3,8 @@ require 'irb/driver'
 require 'irb/ext/completion'
 require 'irb/ext/colorize'
 
+require 'cgi'
+
 module IRB
   # TODO changes to core classes that need to go back into dietrb
 
@@ -87,6 +89,7 @@ module IRB
 
     class ColoredFormatter < IRB::ColoredFormatter
       def colorize_token(type, token)
+        token = CGI.escapeHTML(token) if type == :on_comment || type == :on_tstring_content
         if color = color(type)
           "<span class='#{color}'>#{token}</span>"
         else

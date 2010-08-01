@@ -1,6 +1,7 @@
 framework 'WebKit'
 require 'irb_ext'
 require 'node'
+require 'cgi'
 
 class DOMHTMLElement
   def hasClassName?(name)
@@ -198,7 +199,7 @@ class IRBViewController < NSViewController
   def processInput(input)
     addToHistory(input)
 
-    node = BasicNode.alloc.initWithPrefix(@context.prompt, value: input)
+    node = BasicNode.alloc.initWithPrefix(@context.prompt, value: CGI.escapeHTML(input))
     addConsoleNode(node)
 
     @thread[:input] = input
@@ -217,7 +218,7 @@ class IRBViewController < NSViewController
   end
 
   def receivedOutput(output)
-    addConsoleNode(BasicNode.alloc.initWithValue(output))
+    addConsoleNode(BasicNode.alloc.initWithValue(CGI.escapeHTML(output)))
   end
 
   def receivedException(exception)
