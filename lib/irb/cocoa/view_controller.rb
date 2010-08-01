@@ -2,6 +2,28 @@ framework 'WebKit'
 require 'irb_ext'
 require 'node'
 
+class DOMHTMLElement
+  def hasClassName?(name)
+    className.include?(name)
+  end
+
+  def replaceClassName(old, new)
+    self.className = className.sub(old, new)
+  end
+
+  def id
+    getAttribute('id')
+  end
+
+  def hide!
+    style.display = 'none'
+  end
+
+  def show!
+    style.display = 'block'
+  end
+end
+
 class IRBViewController < NSViewController
   include IRB::Cocoa::Helper
   include IRB::Cocoa
@@ -55,13 +77,33 @@ class IRBViewController < NSViewController
   def webView(webView, didFinishLoadForFrame: frame)
     @document = view.mainFrame.DOMDocument
     @console = @document.getElementById('console')
-
-    view.windowScriptObject.setValue(self, forKey: "IMViewController")
+    @console.send("addEventListener:::", 'click', self, false)
 
     # TODO: this is a hack to make sure the method is exposed to the objc runtime
     respondsToSelector('childrenTableForNode:')
 
     processInput("Object.new")
+  end
+
+  def handleEvent(event)
+    prefix = event.target
+    if prefix.hasClassName?('expandable')
+      row = prefix.parentNode
+      value = row.lastChild
+      if prefix.hasClassName?('not-expanded')
+        table = value.lastChild
+        if table.is_a?(DOMHTMLTableElement)
+          table.show!
+        else
+          table = childrenTableForNode(row.id.to_i)
+          value.appendChild(table)
+        end
+        prefix.replaceClassName('not-expanded', 'expanded')
+      else
+        prefix.replaceClassName('expanded', 'not-expanded')
+        value.lastChild.hide!
+      end
+    end
   end
 
   def addConsoleNode(node)
@@ -90,7 +132,8 @@ class IRBViewController < NSViewController
   end
 
   def childrenTableForNode(id)
-    node = @expandableRowToNodeMap[id.to_i]
+    puts "Get children for node: #{id}"
+    node = @expandableRowToNodeMap[id]
     table = @document.createElement('table')
     node.children.each do |childNode|
       @expandableRowToNodeMap[childNode.id] = childNode if childNode.expandable?

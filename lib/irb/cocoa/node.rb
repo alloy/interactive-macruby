@@ -59,11 +59,11 @@ module IRB
         value  = document.createElement("td")
 
         row.send("setAttribute::", "id", id.to_s)
-        prefix.send("setAttribute::", "class", "prefix#{' not-expanded' if expandable?}")
+        prefix.send("setAttribute::", "class", "prefix#{' expandable not-expanded' if expandable?}")
         value.send("setAttribute::", "class", "value")
 
         if expandable?
-          row.send("setAttribute::", "class", "expandable")
+          #row.send("setAttribute::", "class", "expandable")
         else
           prefix.innerText = self.prefix.string
         end
