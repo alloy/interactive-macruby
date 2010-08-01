@@ -1,1 +1,10 @@
-/* nothing yet * /
+body
+{
+	font-family: Menlo;
+	font-size: 11px;
+}
+
+td.prefix
+{
+	text-align: right;
+}
