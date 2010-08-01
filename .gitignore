@@ -3,3 +3,4 @@ build
 *.pbxuser
 *.swp
 .DS_Store
+webkit-inspector

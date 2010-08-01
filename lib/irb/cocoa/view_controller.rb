@@ -1,3 +1,4 @@
+framework 'WebKit'
 require 'irb_ext'
 require 'node'
 
@@ -13,32 +14,37 @@ class IRBViewController < NSViewController
 
   def initWithObject(object, binding: binding, delegate: delegate)
     if init
-      @delegate = delegate
+      #@delegate = delegate
 
-      @rows = []
-      @heightOfChangedRows = {}
+      #@rows = []
+      #@heightOfChangedRows = {}
 
-      @history = []
-      @currentHistoryIndex = 0
+      #@history = []
+      #@currentHistoryIndex = 0
 
-      @textFieldUsedForRowHeight = NSTextField.new
-      @textFieldUsedForRowHeight.bezeled = false
-      @textFieldUsedForRowHeight.bordered = false
+      #@textFieldUsedForRowHeight = NSTextField.new
+      #@textFieldUsedForRowHeight.bezeled = false
+      #@textFieldUsedForRowHeight.bordered = false
 
-      @colorizationFormatter = IRB::Cocoa::ColoredFormatter.new
-      setupIRBForObject(object, binding: binding)
+      #@colorizationFormatter = IRB::Cocoa::ColoredFormatter.new
+      #setupIRBForObject(object, binding: binding)
 
-      setupDataCells
+      #setupDataCells
 
-      # TODO is this the best way to make the input cell become key?
-      performSelector('editInputCell', withObject: nil, afterDelay: 0)
+      ## TODO is this the best way to make the input cell become key?
+      #performSelector('editInputCell', withObject: nil, afterDelay: 0)
       
       self
     end
   end
   
   def loadView
-    self.view = IRBView.alloc.initWithViewController(self)
+    self.view = WebView.alloc.init
+    resourcePath = File.dirname(__FILE__)
+    p resourcePath
+    #path = File.expand_path('../inspector.html', __FILE__)
+    path = File.join(resourcePath, 'inspector.html')
+    view.mainFrame.loadHTMLString(File.read(path), baseURL: NSURL.fileURLWithPath(resourcePath))
   end
   
   # context callback methods
