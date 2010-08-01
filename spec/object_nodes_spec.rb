@@ -9,7 +9,7 @@ describe "ObjectNode" do
     ObjectNode.nodeForObject(Object.new).class.should == ObjectNode
     ObjectNode.nodeForObject(String).class.should == ModNode
     ObjectNode.nodeForObject(Kernel).class.should == ModNode
-    ObjectNode.nodeForObject(NSImage.alloc.init).class.should == NSImageNode
+    #ObjectNode.nodeForObject(NSImage.alloc.init).class.should == NSImageNode
   end
 end
 
@@ -30,7 +30,7 @@ describe "An ObjectNode instance" do
   it "returns a BlockListNode with public method names, only define on the object's class" do
     @node.publicMethodsNode.to_s.should == "Public methods"
     @node.publicMethodsNode.children.should ==
-      [BasicNode.alloc.initWithvalue("an_instance_method")]
+      [BasicNode.alloc.initWithValue(:an_instance_method)]
   end
 
   it "returns nil if there are no public methods defined on the object's class" do
@@ -39,13 +39,13 @@ describe "An ObjectNode instance" do
   end
 
   it "returns a BlockListNode with Objective-C method names, only defined on the object's class" do
-    objc = Helper.attributedString("42")
+    objc = NSAttributedString.alloc.initWithString("42")
     @node = ObjectNode.alloc.initWithObject(objc)
     @node.objcMethodsNode.to_s.should == "Objective-C methods"
 
     methods = objc.methods(false, true) - objc.methods(false)
     @node.objcMethodsNode.children.should == methods.map do |name|
-      BasicNode.alloc.initWithvalue(name)
+      BasicNode.alloc.initWithValue(name)
     end
   end
 
@@ -54,7 +54,7 @@ describe "An ObjectNode instance" do
 
     @object.instance_variable_set(:@an_instance_variable, :ok)
     @node.instanceVariablesNode.children.should == [
-      ObjectNode.alloc.initWithObject(:ok, value: "@an_instance_variable")
+      ObjectNode.alloc.initWithObject(:ok, value: :@an_instance_variable)
     ]
   end
 
@@ -79,12 +79,12 @@ describe "An ObjectNode instance, initialized with a value" do
   end
 
   it "returns the value it was initialized with" do
-    @node.value.string.should == "An object"
+    @node.value.should == "An object"
   end
 
   it "returns a descriptionNode" do
     @node.descriptionNode.children.should ==
-      [BasicNode.alloc.initWithvalue(@node.objectDescription)]
+      [BasicNode.alloc.initWithValue(@node.objectDescription)]
   end
 end
 
@@ -110,15 +110,15 @@ describe "ModNode" do
 
   it "returns the mod type" do
     node = ModNode.alloc.initWithObject(String)
-    node.modTypeNode.should == BasicNode.alloc.initWithvalue("Type: Class")
+    node.modTypeNode.should == BasicNode.alloc.initWithValue("Type: Class")
 
     node = ModNode.alloc.initWithObject(Kernel)
-    node.modTypeNode.should == BasicNode.alloc.initWithvalue("Type: Module")
+    node.modTypeNode.should == BasicNode.alloc.initWithValue("Type: Module")
   end
 
   it "returns the ancestors" do
     node = ModNode.alloc.initWithObject(String)
-    node.ancestorNode.value.string.should == "Ancestors"
+    node.ancestorNode.value.should == "Ancestors"
     node.ancestorNode.children.should == String.ancestors[1..-1].map do |mod|
       ModNode.alloc.initWithObject(mod, value: mod.name)
     end
@@ -133,18 +133,9 @@ describe "ModNode" do
   end
 end
 
-describe "NSImageNode" do
-  before do
-    @image = NSImage.imageNamed('NSNetwork')
-    @node = NSImageNode.alloc.initWithObject(@image)
-  end
-
-  it "returns NSImageCell as the data cell to use for the value column" do
-    @node.dataCellTypeForColumn('prefix').should == NSTextFieldCell
-    @node.dataCellTypeForColumn('value').should == NSImageCell
-  end
-
-  it "returns the row height" do
-    @node.rowHeight.should == 32
-  end
-end
+#describe "NSImageNode" do
+  #before do
+    #@image = NSImage.imageNamed('NSNetwork')
+    #@node = NSImageNode.alloc.initWithObject(@image)
+  #end
+#end

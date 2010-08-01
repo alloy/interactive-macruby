@@ -6,7 +6,7 @@ module IRB
 
       attr_reader :value
 
-      def initWithvalue(value)
+      def initWithValue(value)
         if init
           @value = value
           self
@@ -14,7 +14,7 @@ module IRB
       end
 
       def initWithPrefix(prefix, value: value)
-        if initWithvalue(value)
+        if initWithValue(value)
           @prefix = prefix
           self
         end
@@ -47,7 +47,7 @@ module IRB
       attr_reader :object
 
       def initWithObject(object, value: value)
-        if initWithvalue(value)
+        if initWithValue(value)
           @object = object
           self
         end
@@ -64,13 +64,13 @@ module IRB
 
     class ListNode < ExpandableNode
       def children
-        @children ||= @object.map { |s| BasicNode.alloc.initWithvalue(s) }
+        @children ||= @object.map { |s| BasicNode.alloc.initWithValue(s) }
       end
     end
 
     class BlockListNode < ExpandableNode
       def initWithBlockAndvalue(value, &block)
-        if initWithvalue(value)
+        if initWithValue(value)
           @block = block
           self
         end
@@ -181,7 +181,7 @@ module IRB
       ]
 
       def modTypeNode
-        BasicNode.alloc.initWithvalue("Type: #{@object.class == Class ? 'Class' : 'Module'}")
+        BasicNode.alloc.initWithValue("Type: #{@object.class == Class ? 'Class' : 'Module'}")
       end
 
       def ancestorNode

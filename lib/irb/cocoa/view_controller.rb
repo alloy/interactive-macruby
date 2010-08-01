@@ -217,12 +217,12 @@ class IRBViewController < NSViewController
   end
 
   def receivedOutput(output)
-    addConsoleNode(BasicNode.alloc.initWithvalue(output))
+    addConsoleNode(BasicNode.alloc.initWithValue(output))
   end
 
   def receivedException(exception)
     string = IRB.formatter.exception(exception)
-    addConsoleNode(BasicNode.alloc.initWithvalue(string))
+    addConsoleNode(BasicNode.alloc.initWithValue(string))
   end
 
   def terminate
