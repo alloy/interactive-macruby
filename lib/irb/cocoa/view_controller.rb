@@ -103,6 +103,7 @@ class IRBViewController < NSViewController
 
   def webView(webView, didFinishLoadForFrame: frame)
     @document = webView.mainFrame.DOMDocument
+    @bottomDiv = @document.getElementById('bottom')
     @console = @document.getElementById('console')
     @console.send("addEventListener:::", 'click', self, false)
 
@@ -116,6 +117,10 @@ class IRBViewController < NSViewController
 
   def self.isSelectorExcludedFromWebScript(sel)
     sel != :"childrenTableForNode:"
+  end
+
+  def scrollWebViewToBottom
+    @bottomDiv.scrollIntoView(true)
   end
 
   # Expands, or collapses, an expandable node
@@ -178,7 +183,7 @@ class IRBViewController < NSViewController
   def makeInputFieldPromptForInput
     @inputField.stringValue = ''
     @inputField.enabled = true
-    view.window.makeFirstResponder(@inputField) 
+    view.window.makeFirstResponder(@inputField)
   end
 
   def inputFromInputField(inputField)
@@ -202,6 +207,7 @@ class IRBViewController < NSViewController
   def receivedResult(result)
     addConsoleNode(ObjectNode.nodeForObject(result))
     makeInputFieldPromptForInput
+    scrollWebViewToBottom
   end
 
   def receivedOutput(output)
