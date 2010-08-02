@@ -1,51 +1,6 @@
-framework 'WebKit'
+require 'objc_ext'
 require 'irb_ext'
 require 'node'
-
-framework 'CoreFoundation'
-class NSString
-  def htmlEscapeEntities
-    result = CFXMLCreateStringByEscapingEntities(nil, self, nil)
-    CFMakeCollectable(result)
-    result
-  end
-end
-
-class NSImage
-  # Returns jpeg file interchange format encoded data for an NSImage regardless of the
-  # original NSImage encoding format.  compressionValue is between 0 and 1.
-  # values 0.6 thru 0.7 are fine for most purposes.
-  def JFIFData(compressionValue)
-    bitmap = NSBitmapImageRep.imageRepWithData(self.TIFFRepresentation)
-    bitmap.representationUsingType(NSJPEGFileType, properties: { NSImageCompressionFactor => compressionValue })
-  end
-end
-
-class DOMHTMLElement
-  def hasClassName?(name)
-    className.include?(name)
-  end
-
-  def replaceClassName(old, new)
-    self.className = className.sub(old, new)
-  end
-
-  def id
-    getAttribute('id')
-  end
-
-  def id=(id)
-    send("setAttribute::", "id", id.to_s)
-  end
-
-  def hide!
-    style.display = 'none'
-  end
-
-  def show!
-    style.display = 'block'
-  end
-end
 
 class IRBViewController < NSViewController
   include IRB::Cocoa
