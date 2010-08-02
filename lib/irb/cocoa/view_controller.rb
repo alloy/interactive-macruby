@@ -119,17 +119,6 @@ class IRBViewController < NSViewController
     @bottomDiv = @document.getElementById('bottom')
     @console = @document.getElementById('console')
     @console.send("addEventListener:::", 'click', self, false)
-
-    # TODO: this is a hack to make sure the method is exposed to the objc runtime
-    respondsToSelector('childrenTableForNode:')
-  end
-
-  def self.webScriptNameForSelector(sel)
-    'childrenTableForNode' if sel == :'childrenTableForNode:'
-  end
-
-  def self.isSelectorExcludedFromWebScript(sel)
-    sel != :"childrenTableForNode:"
   end
 
   def scrollWebViewToBottom
