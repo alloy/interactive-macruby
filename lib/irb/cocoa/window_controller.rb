@@ -1,4 +1,9 @@
 class IRBWindowController < NSWindowController
+  def self.windowWithObjectAndBinding(args)
+    object, binding = args
+    alloc.initWithObject(object, binding: binding).showWindow(self)
+  end
+
   def initWithObject(object, binding: binding)
     window = NSWindow.alloc.initWithContentRect(NSMakeRect(100, 100, 800, 600),
                                      styleMask: NSResizableWindowMask | NSClosableWindowMask | NSTitledWindowMask,

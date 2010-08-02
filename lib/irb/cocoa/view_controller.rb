@@ -287,8 +287,9 @@ end
 
 module Kernel
   def irb(object, binding = nil)
-    controller = IRBWindowController.alloc.initWithObject(object, binding: binding)
-    controller.showWindow(self)
+    IRBWindowController.performSelectorOnMainThread("windowWithObjectAndBinding:",
+                                                    withObject: [object, binding],
+                                                    waitUntilDone: true)
     nil
   end
   
