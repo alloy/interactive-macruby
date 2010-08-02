@@ -90,23 +90,37 @@ class IRBViewController < NSViewController
 
   # Expands, or collapses, an expandable node
   def handleEvent(event)
-    prefix = event.target
-    if prefix.hasClassName?('expandable')
-      row   = prefix.parentNode
-      value = row.lastChild
-      if prefix.hasClassName?('not-expanded')
-        # if there is a table, show it, otherwise create and add one
-        if (table = value.lastChild) && table.is_a?(DOMHTMLTableElement)
-          table.show!
-        else
-          value.appendChild(childrenTableForNode(row['id'].to_i))
-        end
-        prefix.replaceClassName('not-expanded', 'expanded')
-      else
-        prefix.replaceClassName('expanded', 'not-expanded')
-        value.lastChild.hide!
-      end
+    element = event.target
+    case element
+    when DOMHTMLTableCellElement
+      toggleExpandableNode(element) if element.hasClassName?('expandable')
+    when DOMHTMLAnchorElement
+      newContextWithObjectOfNode(element)
     end
+  end
+
+  def toggleExpandableNode(prefix)
+    row   = prefix.parentNode
+    value = row.lastChild
+    if prefix.hasClassName?('not-expanded')
+      # if there is a table, show it, otherwise create and add one
+      if (table = value.lastChild) && table.is_a?(DOMHTMLTableElement)
+        table.show!
+      else
+        value.appendChild(childrenTableForNode(row['id'].to_i))
+      end
+      prefix.replaceClassName('not-expanded', 'expanded')
+    else
+      prefix.replaceClassName('expanded', 'not-expanded')
+      value.lastChild.hide!
+    end
+  end
+
+  def newContextWithObjectOfNode(anchor)
+    row = anchor.parentNode.parentNode
+    object_id = row['id'].to_i
+    object = @expandableRowToNodeMap[object_id].object
+    irb(object)
   end
 
   # DOM element related methods
@@ -121,7 +135,7 @@ class IRBViewController < NSViewController
   end
 
   def childrenTableForNode(id)
-    node = @expandableRowToNodeMap.delete(id)
+    node = @expandableRowToNodeMap[id]
     table = @document.createElement('table')
     node.children.each { |childNode| addNode(childNode, toElement: table) }
     table

@@ -106,6 +106,10 @@ module IRB
         :instanceVariablesNode
       ]
 
+      def initWithValue(value)
+        super("<a href='#'>#{value}</a>")
+      end
+
       def initWithObject(object)
         if init
           @object = object
