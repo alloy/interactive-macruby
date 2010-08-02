@@ -1,4 +1,3 @@
-* Use CFXMLCreateStringByEscapingEntities instead of Ruby’s CGI.escapeHTML
 * think about selectable areas / copy support
 * possible way to get NSImage data in a webview:
   * simple: http://lists.apple.com/archives/webkitsdk-dev/2007/May/msg00063.html

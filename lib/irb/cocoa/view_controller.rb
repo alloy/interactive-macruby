@@ -1,7 +1,15 @@
 framework 'WebKit'
 require 'irb_ext'
 require 'node'
-require 'cgi'
+
+framework 'CoreFoundation'
+class NSString
+  def htmlEscapeEntities
+    result = CFXMLCreateStringByEscapingEntities(nil, self, nil)
+    CFMakeCollectable(result)
+    result
+  end
+end
 
 class NSImage
   # Returns jpeg file interchange format encoded data for an NSImage regardless of the
@@ -220,7 +228,7 @@ class IRBViewController < NSViewController
   def processInput(input)
     addToHistory(input)
 
-    node = BasicNode.alloc.initWithPrefix(@context.prompt, value: CGI.escapeHTML(input))
+    node = BasicNode.alloc.initWithPrefix(@context.prompt, value: input.htmlEscapeEntities)
     addConsoleNode(node)
 
     @thread[:input] = input
@@ -239,7 +247,7 @@ class IRBViewController < NSViewController
   end
 
   def receivedOutput(output)
-    addConsoleNode(BasicNode.alloc.initWithValue(CGI.escapeHTML(output)))
+    addConsoleNode(BasicNode.alloc.initWithValue(output.htmlEscapeEntities))
   end
 
   def receivedException(exception)
