@@ -23,6 +23,10 @@ describe "An ObjectNode instance" do
     @node.objectDescription.should == IRB.formatter.result(@object)
   end
 
+  it "returns the objects id" do
+    @node.objectIDNode.value.should == "ID: #{@object.object_id}"
+  end
+
   it "returns a ModNode for this object’s class" do
     @node.classNode.should == ModNode.alloc.initWithObject(@object.class, value: "Class: AnObject")
   end
@@ -63,12 +67,13 @@ describe "An ObjectNode instance" do
 
     def @node.descriptionNode;       called << :descriptionNode;       nil;                    end
     def @node.classNode;             called << :classNode;             :classNode;             end
+    def @node.objectIDNode;          called << :objectIDNode;          :objectIDNode;          end
     def @node.publicMethodsNode;     called << :publicMethodsNode;     :publicMethodsNode;     end
     def @node.objcMethodsNode;       called << :objcMethodsNode;       nil;                    end
     def @node.instanceVariablesNode; called << :instanceVariablesNode; :instanceVariablesNode; end
 
-    @node.children.should == [:classNode, :publicMethodsNode, :instanceVariablesNode]
-    @node.called.should ==   [:descriptionNode, :classNode, :publicMethodsNode, :objcMethodsNode, :instanceVariablesNode]
+    @node.children.should == [:classNode, :objectIDNode, :publicMethodsNode, :instanceVariablesNode]
+    @node.called.should ==   [:descriptionNode, :classNode, :objectIDNode, :publicMethodsNode, :objcMethodsNode, :instanceVariablesNode]
   end
 end
 
@@ -78,8 +83,8 @@ describe "An ObjectNode instance, initialized with a value" do
     @node = ObjectNode.alloc.initWithObject(@object, value: "An object")
   end
 
-  it "returns the value it was initialized with" do
-    @node.value.should == "An object"
+  it "returns the value it was initialized with, wrapped in an achor tag" do
+    @node.value.should == "<a href='#'>An object</a>"
   end
 
   it "returns a descriptionNode" do

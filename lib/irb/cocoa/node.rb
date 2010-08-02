@@ -101,6 +101,7 @@ module IRB
       self.children = [
         :descriptionNode,
         :classNode,
+        :objectIDNode,
         :publicMethodsNode,
         :objcMethodsNode,
         :instanceVariablesNode
@@ -141,6 +142,10 @@ module IRB
         if @showDescriptionNode
           ListNode.alloc.initWithObject([objectDescription], value: "Description")
         end
+      end
+
+      def objectIDNode
+        BasicNode.alloc.initWithValue("ID: #{@object.object_id}")
       end
 
       def classNode

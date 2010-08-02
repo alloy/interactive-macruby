@@ -88,7 +88,6 @@ class IRBViewController < NSViewController
     @bottomDiv.scrollIntoView(true)
   end
 
-  # Expands, or collapses, an expandable node
   def handleEvent(event)
     element = event.target
     case element
