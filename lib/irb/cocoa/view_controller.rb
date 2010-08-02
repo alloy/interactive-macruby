@@ -166,7 +166,7 @@ class IRBViewController < NSViewController
   end
 
   def childrenTableForNode(id)
-    node = @expandableRowToNodeMap[id]
+    node = @expandableRowToNodeMap.delete(id)
     table = @document.createElement('table')
     node.children.each { |childNode| addNode(childNode, toElement: table) }
     table
