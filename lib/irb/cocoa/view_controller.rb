@@ -99,7 +99,7 @@ class IRBViewController < NSViewController
         if (table = value.lastChild) && table.is_a?(DOMHTMLTableElement)
           table.show!
         else
-          value.appendChild(childrenTableForNode(row.id.to_i))
+          value.appendChild(childrenTableForNode(row['id'].to_i))
         end
         prefix.replaceClassName('not-expanded', 'expanded')
       else
@@ -132,7 +132,7 @@ class IRBViewController < NSViewController
     prefix = @document.createElement("td")
     value  = @document.createElement("td")
 
-    row.id           = node.id
+    row['id']        = node.id
     prefix.className = "prefix#{' expandable not-expanded' if node.expandable?}"
     value.className  = "value"
     prefix.innerHTML = node.prefix

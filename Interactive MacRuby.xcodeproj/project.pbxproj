@@ -54,6 +54,7 @@
 		51B456F412058AF700BA7EB4 /* inspector.css in Resources */ = {isa = PBXBuildFile; fileRef = 51B456F212058AF700BA7EB4 /* inspector.css */; };
 		51B456F512058AF700BA7EB4 /* inspector.html in Resources */ = {isa = PBXBuildFile; fileRef = 51B456F312058AF700BA7EB4 /* inspector.html */; };
 		51B4573C12059C4500BA7EB4 /* images in Resources */ = {isa = PBXBuildFile; fileRef = 51B4573812059C4500BA7EB4 /* images */; };
+		51B4591112074B6D00BA7EB4 /* objc_ext.rb in Resources */ = {isa = PBXBuildFile; fileRef = 51B4591012074B6D00BA7EB4 /* objc_ext.rb */; };
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
@@ -89,6 +90,7 @@
 		51B456F212058AF700BA7EB4 /* inspector.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; name = inspector.css; path = lib/irb/cocoa/inspector.css; sourceTree = "<group>"; };
 		51B456F312058AF700BA7EB4 /* inspector.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; name = inspector.html; path = lib/irb/cocoa/inspector.html; sourceTree = "<group>"; };
 		51B4573812059C4500BA7EB4 /* images */ = {isa = PBXFileReference; lastKnownFileType = folder; name = images; path = lib/irb/cocoa/images; sourceTree = "<group>"; };
+		51B4591012074B6D00BA7EB4 /* objc_ext.rb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.ruby; name = objc_ext.rb; path = lib/irb/cocoa/objc_ext.rb; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* Interactive MacRuby.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Interactive MacRuby.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -111,6 +113,7 @@
 			children = (
 				517FC85F11FB874100B8B584 /* window_controller.rb */,
 				517FC86711FB88E900B8B584 /* view_controller.rb */,
+				51B4591012074B6D00BA7EB4 /* objc_ext.rb */,
 				51B455CA1203AC4700BA7EB4 /* node.rb */,
 				517FCA2C11FC5EBE00B8B584 /* irb_ext.rb */,
 				517FC85711FB850200B8B584 /* application_delegate.rb */,
@@ -246,6 +249,7 @@
 				51B456F412058AF700BA7EB4 /* inspector.css in Resources */,
 				51B456F512058AF700BA7EB4 /* inspector.html in Resources */,
 				51B4573C12059C4500BA7EB4 /* images in Resources */,
+				51B4591112074B6D00BA7EB4 /* objc_ext.rb in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
