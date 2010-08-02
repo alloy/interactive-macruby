@@ -160,7 +160,7 @@ class IRBViewController < NSViewController
                                                           frameName: nil))
 
     element = @document.createElement('img')
-    element.send('setAttribute::', 'src', url)
+    element['src'] = url
     element
   end
 
