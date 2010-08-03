@@ -25,9 +25,9 @@ class IRBViewController < NSViewController
   def loadView
     NSUserDefaults.standardUserDefaults.registerDefaults('WebKitDeveloperExtras' => true)
     
-    webView = WebView.alloc.init
-    webView.frameLoadDelegate = self
-    webView.setUIDelegate(self)
+    @webView = WebView.alloc.init
+    @webView.frameLoadDelegate = self
+    @webView.setUIDelegate(self)
 
     @inputField = NSTextField.alloc.init
     @inputField.bordered = false
@@ -40,19 +40,47 @@ class IRBViewController < NSViewController
     splitView.delegate = self
     splitView.vertical = false
     splitView.dividerStyle = NSSplitViewDividerStylePaneSplitter
-    splitView.addSubview(webView)
+    splitView.addSubview(@webView)
     splitView.addSubview(@inputField)
     self.view = splitView
 
     resourcePath = File.dirname(__FILE__)
     path = File.join(resourcePath, 'inspector.html')
-    webView.mainFrame.loadHTMLString(File.read(path), baseURL: NSURL.fileURLWithPath(resourcePath))
+    @webView.mainFrame.loadHTMLString(File.read(path), baseURL: NSURL.fileURLWithPath(resourcePath))
 
     # TODO: possibly move this to a subclass
     def splitView.viewDidMoveToWindow
       super
       window.makeFirstResponder(subviews.last)
     end
+  end
+
+  # actions
+
+  def webView(webView, contextMenuItemsForElement: element, defaultMenuItems: defaultItems)
+    menuItems = [
+      NSMenuItem.alloc.initWithTitle("Clear console", action: "clearConsole:", keyEquivalent: ""),
+      NSMenuItem.separatorItem,
+      NSMenuItem.alloc.initWithTitle("Zoom In", action: "makeTextLarger:", keyEquivalent: ""),
+      NSMenuItem.alloc.initWithTitle("Zoom Out", action: "makeTextSmaller:", keyEquivalent: ""),
+    ]
+    menuItems.each { |i| i.target = self }
+    menuItems
+  end
+
+  def clearConsole(sender)
+    @console.innerHTML = ''
+    @expandableRowToNodeMap = {}
+    @context.clear_buffer
+    makeInputFieldPromptForInput
+  end
+
+  def makeTextLarger(sender)
+    @webView.makeTextLarger(sender)
+  end
+
+  def makeTextSmaller(sender)
+    @webView.makeTextSmaller(sender)
   end
 
   # splitView delegate methods
@@ -83,12 +111,6 @@ class IRBViewController < NSViewController
     @bottomDiv = @document.getElementById('bottom')
     @console = @document.getElementById('console')
     @console.send("addEventListener:::", 'click', self, false)
-  end
-
-  def webView(webView, contextMenuItemsForElement: element, defaultMenuItems: defaultItems)
-    menuItems = [NSMenuItem.alloc.initWithTitle("Clear console", action: "clearConsole", keyEquivalent: "")]
-    menuItems.each { |i| i.target = self }
-    menuItems
   end
 
   def scrollWebViewToBottom
@@ -185,13 +207,6 @@ class IRBViewController < NSViewController
   end
 
   # input/output related methods
-
-  def clearConsole
-    @console.innerHTML = ''
-    @expandableRowToNodeMap = {}
-    @context.clear_buffer
-    makeInputFieldPromptForInput
-  end
 
   def makeInputFieldPromptForInput
     @inputField.stringValue = ''

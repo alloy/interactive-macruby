@@ -31,7 +31,15 @@ class IRBWindowController < NSWindowController
   end
 
   def clearConsole(sender)
-    @viewController.clearConsole
+    @viewController.clearConsole(sender)
+  end
+
+  def makeTextLarger(sender)
+    @viewController.makeTextLarger(sender)
+  end
+
+  def makeTextSmaller(sender)
+    @viewController.makeTextSmaller(sender)
   end
 
   def irbViewControllerTerminated(viewController)
