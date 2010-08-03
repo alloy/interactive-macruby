@@ -42,6 +42,14 @@ class IRBWindowController < NSWindowController
     @viewController.makeTextSmaller(sender)
   end
 
+  def cancelOperation(sender)
+    @viewController.toggleFullScreenMode(sender)
+  end
+
+  def toggleFullScreenMode(sender)
+    @viewController.toggleFullScreenMode(sender)
+  end
+
   def irbViewControllerTerminated(viewController)
     window.close
   end

@@ -669,19 +669,10 @@
 							<string key="NSTitle">View</string>
 							<object class="NSMutableArray" key="NSMenuItems">
 								<bool key="EncodedWithXMLCoder">YES</bool>
-								<object class="NSMenuItem" id="102151532">
-									<reference key="NSMenu" ref="466310130"/>
-									<string key="NSTitle">Show Toolbar</string>
-									<string key="NSKeyEquiv">t</string>
-									<int key="NSKeyEquivModMask">1572864</int>
-									<int key="NSMnemonicLoc">2147483647</int>
-									<reference key="NSOnImage" ref="35465992"/>
-									<reference key="NSMixedImage" ref="807125248"/>
-								</object>
 								<object class="NSMenuItem" id="237841660">
 									<reference key="NSMenu" ref="466310130"/>
-									<string key="NSTitle">Customize Toolbar…</string>
-									<string key="NSKeyEquiv"/>
+									<string key="NSTitle">Enter Full Screen</string>
+									<string key="NSKeyEquiv">F</string>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
 									<reference key="NSOnImage" ref="35465992"/>
@@ -1058,22 +1049,6 @@
 				</object>
 				<object class="IBConnectionRecord">
 					<object class="IBActionConnection" key="connection">
-						<string key="label">runToolbarCustomizationPalette:</string>
-						<reference key="source" ref="1014"/>
-						<reference key="destination" ref="237841660"/>
-					</object>
-					<int key="connectionID">365</int>
-				</object>
-				<object class="IBConnectionRecord">
-					<object class="IBActionConnection" key="connection">
-						<string key="label">toggleToolbarShown:</string>
-						<reference key="source" ref="1014"/>
-						<reference key="destination" ref="102151532"/>
-					</object>
-					<int key="connectionID">366</int>
-				</object>
-				<object class="IBConnectionRecord">
-					<object class="IBActionConnection" key="connection">
 						<string key="label">hide:</string>
 						<reference key="source" ref="1014"/>
 						<reference key="destination" ref="755159360"/>
@@ -1151,6 +1126,14 @@
 						<reference key="destination" ref="560930360"/>
 					</object>
 					<int key="connectionID">384</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBActionConnection" key="connection">
+						<string key="label">toggleFullScreenMode:</string>
+						<reference key="source" ref="1014"/>
+						<reference key="destination" ref="237841660"/>
+					</object>
+					<int key="connectionID">385</int>
 				</object>
 			</object>
 			<object class="IBMutableOrderedSet" key="objectRecords">
@@ -1639,18 +1622,12 @@
 						<reference key="object" ref="466310130"/>
 						<object class="NSMutableArray" key="children">
 							<bool key="EncodedWithXMLCoder">YES</bool>
-							<reference ref="102151532"/>
 							<reference ref="237841660"/>
 							<reference ref="34865284"/>
 							<reference ref="486516467"/>
 							<reference ref="560930360"/>
 						</object>
 						<reference key="parent" ref="586577488"/>
-					</object>
-					<object class="IBObjectRecord">
-						<int key="objectID">297</int>
-						<reference key="object" ref="102151532"/>
-						<reference key="parent" ref="466310130"/>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">298</int>
@@ -1880,6 +1857,7 @@
 					<string>218.ImportedFromIB2</string>
 					<string>219.IBPluginDependency</string>
 					<string>219.ImportedFromIB2</string>
+					<string>220.IBEditorWindowLastContentRect</string>
 					<string>220.IBPluginDependency</string>
 					<string>220.ImportedFromIB2</string>
 					<string>220.editorWindowContentRectSynchronizationRect</string>
@@ -1903,7 +1881,6 @@
 					<string>296.IBEditorWindowLastContentRect</string>
 					<string>296.IBPluginDependency</string>
 					<string>296.editorWindowContentRectSynchronizationRect</string>
-					<string>297.IBPluginDependency</string>
 					<string>298.IBPluginDependency</string>
 					<string>299.IBPluginDependency</string>
 					<string>300.IBEditorWindowLastContentRect</string>
@@ -2027,7 +2004,7 @@
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
-					<string>{{273, 460}, {240, 243}}</string>
+					<string>{{164, 476}, {240, 243}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
 					<string>{{187, 434}, {243, 243}}</string>
@@ -2060,6 +2037,7 @@
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
+					<string>{{404, 456}, {238, 103}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
 					<string>{{608, 612}, {241, 103}}</string>
@@ -2074,16 +2052,15 @@
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
 					<string>{{525, 802}, {197, 73}}</string>
-					<string>{{81, 715}, {505, 20}}</string>
+					<string>{{-49, 719}, {505, 20}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
 					<string>{74, 862}</string>
 					<string>{{6, 978}, {478, 20}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<string>{{404, 622}, {234, 93}}</string>
+					<string>{{274, 646}, {204, 73}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>{{475, 832}, {234, 43}}</string>
-					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>{{317, 660}, {173, 43}}</string>
@@ -2161,7 +2138,7 @@
 				</object>
 			</object>
 			<nil key="sourceID"/>
-			<int key="maxID">384</int>
+			<int key="maxID">385</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<object class="NSMutableArray" key="referencedPartialClassDescriptions">
@@ -2240,17 +2217,113 @@
 					</object>
 				</object>
 				<object class="IBPartialClassDescription">
+					<string key="className">IRBViewController</string>
+					<string key="superclassName">NSViewController</string>
+					<object class="NSMutableDictionary" key="actions">
+						<bool key="EncodedWithXMLCoder">YES</bool>
+						<object class="NSArray" key="dict.sortedKeys">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<string>clearConsole:</string>
+							<string>makeTextLarger:</string>
+							<string>makeTextSmaller:</string>
+							<string>toggleFullScreenMode:</string>
+						</object>
+						<object class="NSMutableArray" key="dict.values">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<string>id</string>
+							<string>id</string>
+							<string>id</string>
+							<string>id</string>
+						</object>
+					</object>
+					<object class="NSMutableDictionary" key="actionInfosByName">
+						<bool key="EncodedWithXMLCoder">YES</bool>
+						<object class="NSArray" key="dict.sortedKeys">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<string>clearConsole:</string>
+							<string>makeTextLarger:</string>
+							<string>makeTextSmaller:</string>
+							<string>toggleFullScreenMode:</string>
+						</object>
+						<object class="NSMutableArray" key="dict.values">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<object class="IBActionInfo">
+								<string key="name">clearConsole:</string>
+								<string key="candidateClassName">id</string>
+							</object>
+							<object class="IBActionInfo">
+								<string key="name">makeTextLarger:</string>
+								<string key="candidateClassName">id</string>
+							</object>
+							<object class="IBActionInfo">
+								<string key="name">makeTextSmaller:</string>
+								<string key="candidateClassName">id</string>
+							</object>
+							<object class="IBActionInfo">
+								<string key="name">toggleFullScreenMode:</string>
+								<string key="candidateClassName">id</string>
+							</object>
+						</object>
+					</object>
+					<object class="IBClassDescriptionSource" key="sourceIdentifier">
+						<string key="majorKey">IBProjectSource</string>
+						<string key="minorKey">lib/irb/cocoa/view_controller.rb</string>
+					</object>
+				</object>
+				<object class="IBPartialClassDescription">
 					<string key="className">IRBWindowController</string>
 					<string key="superclassName">NSWindowController</string>
 					<object class="NSMutableDictionary" key="actions">
-						<string key="NS.key.0">clearConsole:</string>
-						<string key="NS.object.0">id</string>
+						<bool key="EncodedWithXMLCoder">YES</bool>
+						<object class="NSArray" key="dict.sortedKeys">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<string>cancelOperation:</string>
+							<string>clearConsole:</string>
+							<string>makeTextLarger:</string>
+							<string>makeTextSmaller:</string>
+							<string>toggleFullScreenMode:</string>
+						</object>
+						<object class="NSMutableArray" key="dict.values">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<string>id</string>
+							<string>id</string>
+							<string>id</string>
+							<string>id</string>
+							<string>id</string>
+						</object>
 					</object>
 					<object class="NSMutableDictionary" key="actionInfosByName">
-						<string key="NS.key.0">clearConsole:</string>
-						<object class="IBActionInfo" key="NS.object.0">
-							<string key="name">clearConsole:</string>
-							<string key="candidateClassName">id</string>
+						<bool key="EncodedWithXMLCoder">YES</bool>
+						<object class="NSArray" key="dict.sortedKeys">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<string>cancelOperation:</string>
+							<string>clearConsole:</string>
+							<string>makeTextLarger:</string>
+							<string>makeTextSmaller:</string>
+							<string>toggleFullScreenMode:</string>
+						</object>
+						<object class="NSMutableArray" key="dict.values">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<object class="IBActionInfo">
+								<string key="name">cancelOperation:</string>
+								<string key="candidateClassName">id</string>
+							</object>
+							<object class="IBActionInfo">
+								<string key="name">clearConsole:</string>
+								<string key="candidateClassName">id</string>
+							</object>
+							<object class="IBActionInfo">
+								<string key="name">makeTextLarger:</string>
+								<string key="candidateClassName">id</string>
+							</object>
+							<object class="IBActionInfo">
+								<string key="name">makeTextSmaller:</string>
+								<string key="candidateClassName">id</string>
+							</object>
+							<object class="IBActionInfo">
+								<string key="name">toggleFullScreenMode:</string>
+								<string key="candidateClassName">id</string>
+							</object>
 						</object>
 					</object>
 					<object class="IBClassDescriptionSource" key="sourceIdentifier">
@@ -2783,6 +2856,25 @@
 					<string key="className">NSView</string>
 					<string key="superclassName">NSResponder</string>
 					<reference key="sourceIdentifier" ref="663932943"/>
+				</object>
+				<object class="IBPartialClassDescription">
+					<string key="className">NSViewController</string>
+					<string key="superclassName">NSResponder</string>
+					<object class="NSMutableDictionary" key="outlets">
+						<string key="NS.key.0">view</string>
+						<string key="NS.object.0">NSView</string>
+					</object>
+					<object class="NSMutableDictionary" key="toOneOutletInfosByName">
+						<string key="NS.key.0">view</string>
+						<object class="IBToOneOutletInfo" key="NS.object.0">
+							<string key="name">view</string>
+							<string key="candidateClassName">NSView</string>
+						</object>
+					</object>
+					<object class="IBClassDescriptionSource" key="sourceIdentifier">
+						<string key="majorKey">IBFrameworkSource</string>
+						<string key="minorKey">AppKit.framework/Headers/NSViewController.h</string>
+					</object>
 				</object>
 				<object class="IBPartialClassDescription">
 					<string key="className">NSWindow</string>

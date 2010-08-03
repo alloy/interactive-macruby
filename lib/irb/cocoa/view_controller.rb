@@ -36,31 +36,27 @@ class IRBViewController < NSViewController
     @inputField.target = self
     @inputField.action = "inputFromInputField:"
 
-    splitView = NSSplitView.alloc.init
-    splitView.delegate = self
-    splitView.vertical = false
-    splitView.dividerStyle = NSSplitViewDividerStylePaneSplitter
-    splitView.addSubview(@webView)
-    splitView.addSubview(@inputField)
-    self.view = splitView
+    @splitView = NSSplitView.alloc.init
+    @splitView.delegate = self
+    @splitView.vertical = false
+    @splitView.dividerStyle = NSSplitViewDividerStylePaneSplitter
+    @splitView.addSubview(@webView)
+    @splitView.addSubview(@inputField)
+    self.view = @splitView
 
     resourcePath = File.dirname(__FILE__)
     path = File.join(resourcePath, 'inspector.html')
     @webView.mainFrame.loadHTMLString(File.read(path), baseURL: NSURL.fileURLWithPath(resourcePath))
-
-    # TODO: possibly move this to a subclass
-    def splitView.viewDidMoveToWindow
-      super
-      window.makeFirstResponder(subviews.last)
-    end
   end
 
   # actions
 
   def webView(webView, contextMenuItemsForElement: element, defaultMenuItems: defaultItems)
+    fullScreenLabel = @splitView.isInFullScreenMode ? "Exit Full Screen" : "Enter Full Screen"
     menuItems = [
       NSMenuItem.alloc.initWithTitle("Clear console", action: "clearConsole:", keyEquivalent: ""),
       NSMenuItem.separatorItem,
+      NSMenuItem.alloc.initWithTitle(fullScreenLabel, action: "toggleFullScreenMode:", keyEquivalent: ""),
       NSMenuItem.alloc.initWithTitle("Zoom In", action: "makeTextLarger:", keyEquivalent: ""),
       NSMenuItem.alloc.initWithTitle("Zoom Out", action: "makeTextSmaller:", keyEquivalent: ""),
     ]
@@ -81,6 +77,15 @@ class IRBViewController < NSViewController
 
   def makeTextSmaller(sender)
     @webView.makeTextSmaller(sender)
+  end
+
+  def toggleFullScreenMode(sender)
+    if @splitView.isInFullScreenMode
+      @splitView.exitFullScreenModeWithOptions({})
+    else
+      @splitView.enterFullScreenMode(NSScreen.mainScreen, withOptions: {})
+    end
+    makeInputFieldPromptForInput(false)
   end
 
   # splitView delegate methods
@@ -111,6 +116,7 @@ class IRBViewController < NSViewController
     @bottomDiv = @document.getElementById('bottom')
     @console = @document.getElementById('console')
     @console.send("addEventListener:::", 'click', self, false)
+    makeInputFieldPromptForInput
   end
 
   def scrollWebViewToBottom
@@ -208,8 +214,8 @@ class IRBViewController < NSViewController
 
   # input/output related methods
 
-  def makeInputFieldPromptForInput
-    @inputField.stringValue = ''
+  def makeInputFieldPromptForInput(clear = true)
+    @inputField.stringValue = '' if clear
     @inputField.enabled = true
     view.window.makeFirstResponder(@inputField)
   end
@@ -265,8 +271,10 @@ class IRBViewController < NSViewController
   end
   
   def control(control, textView: textView, doCommandBySelector: selector)
-    # p selector
+    #p selector
     case selector
+    when :"cancelOperation:"
+      toggleFullScreenMode(nil) if @splitView.isInFullScreenMode
     when :"insertTab:"
       textView.complete(self)
     when :"moveUp:"
