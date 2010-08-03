@@ -7,7 +7,7 @@
 	<key>CFBundleExecutable</key>
 	<string>${EXECUTABLE_NAME}</string>
 	<key>CFBundleIconFile</key>
-	<string></string>
+	<string>HotConsole.icns</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.yourcompany.Interactive MacRuby</string>
 	<key>CFBundleInfoDictionaryVersion</key>
