@@ -26,8 +26,13 @@ class IRBWindowController < NSWindowController
     if initWithWindow(window)
       @viewController = IRBViewController.alloc.initWithObject(object, binding: binding, delegate: self)
       window.contentView = @viewController.view
+      receivedResult(@viewController)
       self
     end
+  end
+
+  def receivedResult(viewController)
+    window.title = viewController.context.object.inspect
   end
 
   def clearConsole(sender)

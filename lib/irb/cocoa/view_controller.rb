@@ -8,6 +8,7 @@ class IRBViewController < NSViewController
   INPUT_FIELD_HEIGHT = 22
 
   attr_reader :output
+  attr_reader :context
 
   def initWithObject(object, binding: binding, delegate: delegate)
     if init
@@ -245,6 +246,7 @@ class IRBViewController < NSViewController
 
   def receivedResult(result)
     addConsoleNode(ObjectNode.nodeForObject(result))
+    @delegate.receivedResult(self)
     makeInputFieldPromptForInput
     scrollWebViewToBottom
   end

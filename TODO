@@ -1,5 +1,4 @@
 * Colorize string in input field as you type
-* Use the context’s object description as the window title
 * Clicking a line in an exception BT should show the code in that file, somehow. Or if it's code entered in the console, show that.
 * Make border of input field red as long as there's a syntax error. Possibly see if another color can be used to indicate the source ‘indent’ level.
 * Think about selectable areas / copy support
