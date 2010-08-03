@@ -1,2 +1,6 @@
+* Use the context’s object description as the window title
+* Stack new session windows in a nicer way, so they don’t exactly overlap
+* Clear the screen (and cached nodes) with command+k
+* Zoom text in/out, with WebView's makeTextLarger:/makeTextSmaller:
+* Allow a session view to go into fullscreen mode
 * think about selectable areas / copy support
-
