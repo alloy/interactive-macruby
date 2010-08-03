@@ -69,7 +69,7 @@ class IRBViewController < NSViewController
     @console.innerHTML = ''
     @expandableRowToNodeMap = {}
     @context.clear_buffer
-    makeInputFieldPromptForInput
+    makeInputFieldPromptForInput(false)
   end
 
   def makeTextLarger(sender)
