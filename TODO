@@ -1,5 +1,6 @@
+* Don't select all text in the input field after giving it focus
 * Colorize string in input field as you type
-* Clicking a line in an exception BT should show the code in that file, somehow. Or if it's code entered in the console, show that.
+* Clicking a line in an exception BT should show the code in that file, somehow, probably a QuickLook-like panel with a webview with colorized source. Or if it's code entered in the console, show that.
 * Make border of input field red as long as there's a syntax error. Possibly see if another color can be used to indicate the source ‘indent’ level.
 * Think about selectable areas / copy support
 * Would it be possible to ‘marshal’ all objects in the env, before evalling source? This way, if the user does something to crash the app, we can restore the env.
