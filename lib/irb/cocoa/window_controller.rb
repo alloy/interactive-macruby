@@ -30,6 +30,10 @@ class IRBWindowController < NSWindowController
     end
   end
 
+  def clearConsole(sender)
+    @viewController.clearConsole
+  end
+
   def irbViewControllerTerminated(viewController)
     window.close
   end

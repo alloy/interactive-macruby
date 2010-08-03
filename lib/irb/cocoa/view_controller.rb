@@ -27,6 +27,7 @@ class IRBViewController < NSViewController
     
     webView = WebView.alloc.init
     webView.frameLoadDelegate = self
+    webView.setUIDelegate(self)
 
     @inputField = NSTextField.alloc.init
     @inputField.bordered = false
@@ -82,6 +83,12 @@ class IRBViewController < NSViewController
     @bottomDiv = @document.getElementById('bottom')
     @console = @document.getElementById('console')
     @console.send("addEventListener:::", 'click', self, false)
+  end
+
+  def webView(webView, contextMenuItemsForElement: element, defaultMenuItems: defaultItems)
+    menuItems = [NSMenuItem.alloc.initWithTitle("Clear console", action: "clearConsole", keyEquivalent: "")]
+    menuItems.each { |i| i.target = self }
+    menuItems
   end
 
   def scrollWebViewToBottom
@@ -178,6 +185,13 @@ class IRBViewController < NSViewController
   end
 
   # input/output related methods
+
+  def clearConsole
+    @console.innerHTML = ''
+    @expandableRowToNodeMap = {}
+    @context.clear_buffer
+    makeInputFieldPromptForInput
+  end
 
   def makeInputFieldPromptForInput
     @inputField.stringValue = ''
