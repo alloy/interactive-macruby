@@ -4,4 +4,7 @@
 * Clear the screen (and cached nodes) with command+k
 * Zoom text in/out, with WebView's makeTextLarger:/makeTextSmaller:
 * Allow a session view to go into fullscreen mode
-* think about selectable areas / copy support
+* Clicking a line in an exception BT should show the code in that file, somehow. Or if it's code entered in the console, show that.
+* Make border of input field red as long as there's a syntax error. Possibly see if another color can be used to indicate the source ‘indent’ level.
+* Think about selectable areas / copy support
+* Would it be possible to ‘marshal’ all objects in the env, before evalling source? This way, if the user does something to crash the app, we can restore the env.
