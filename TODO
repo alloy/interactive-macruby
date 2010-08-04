@@ -1,3 +1,4 @@
+* File tickets on MR trac for all current dietrb spec failures
 * Automatically resize input field as long as input is needed.
 * Don't select all text in the input field after giving it focus
 * Colorize string in input field as you type
