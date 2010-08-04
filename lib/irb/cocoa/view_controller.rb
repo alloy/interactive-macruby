@@ -25,7 +25,11 @@ class IRBViewController < NSViewController
   
   def loadView
     NSUserDefaults.standardUserDefaults.registerDefaults('WebKitDeveloperExtras' => true)
-    
+
+    @sizeTextField = NSTextField.alloc.init
+    @sizeTextField.bordered = false
+    @sizeTextField.bezeled = false
+
     @webView = WebView.alloc.init
     @webView.frameLoadDelegate = self
     @webView.setUIDelegate(self)
@@ -221,25 +225,17 @@ class IRBViewController < NSViewController
     view.window.makeFirstResponder(@inputField)
   end
 
-  def inputFromInputField(inputField)
-    input = inputField.stringValue
-    unless input.empty?
-      inputField.enabled = false
-      processInput(input)
-    end
-  end
-
-  def processInput(input)
+  def processSourceBuffer!
     currentLineCount = @context.line
 
-    input.split("\n").each_with_index do |line, offset|
+    @sourceBuffer.buffer.each_with_index do |line, offset|
       addToHistory(line)
       node = BasicNode.alloc.initWithPrefix((currentLineCount + offset).to_s,
                                      value: line.htmlEscapeEntities)
       addConsoleNode(node)
     end
 
-    @thread[:input] = input
+    @thread[:input] = @sourceBuffer.buffer
     @thread.run
   end
 
@@ -280,13 +276,12 @@ class IRBViewController < NSViewController
     #p selector
     case selector
     when :"insertNewline:"
-      source = IRB::Source.new
-      source << textView.string
-      if source.code_block?
-        inputFromInputField(@inputField)
+      @sourceBuffer = IRB::Source.new(textView.string.split("\n"))
+      if @sourceBuffer.code_block?
+        processSourceBuffer!
       else
         textView.string = "#{textView.string}\n"
-        sizeInputFieldToFit
+        sizeInputFieldToFit!
       end
 
     when :"cancelOperation:"
@@ -314,15 +309,16 @@ class IRBViewController < NSViewController
     true
   end
 
-  def sizeInputFieldToFit
-    unless @sizeTextField
-      @sizeTextField = NSTextField.alloc.init
-      @sizeTextField.bordered = false
-      @sizeTextField.bezeled = false
-    end
+  def sizeInputFieldToFit!
+    currentSize = @inputField.frameSize
     @sizeTextField.attributedStringValue = @inputField.attributedStringValue
-    size = @sizeTextField.cell.cellSizeForBounds(NSMakeRect(0, 0, @inputField.frameSize.width, 1000000))
-    @inputField.frameSize = NSMakeSize(@inputField.frameSize.width, size.height + 2)
+    height = @sizeTextField.cell.cellSizeForBounds(NSMakeRect(0, 0, currentSize.width, 1000000)).height
+    unless height < currentSize.height
+      # the calculation that comes out isn't perfect imo,
+      # so add 2 more points for each line in the source buffer
+      height += (2 * @sourceBuffer.buffer.size) + 1
+      @inputField.frameSize = NSMakeSize(@inputField.frameSize.width, height)
+    end
   end
 
   private
@@ -339,7 +335,7 @@ class IRBViewController < NSViewController
       loop do
         if input = Thread.current[:input]
           Thread.current[:input] = nil
-          input.split("\n").each do |line|
+          input.each do |line|
             unless context.process_line(line)
               controller.performSelectorOnMainThread("terminate",
                                           withObject: nil,
