@@ -1,5 +1,6 @@
 * File tickets on MR trac for all current dietrb spec failures
 * Automatically resize input field as long as input is needed.
+* DietRB fails when trying to complete methods on `nil'
 * Don't select all text in the input field after giving it focus
 * Colorize string in input field as you type
 * Clicking a line in an exception BT should show the code in that file, somehow, probably a QuickLook-like panel with a web view with colorized source. Or if it's code entered in the console, show that.
