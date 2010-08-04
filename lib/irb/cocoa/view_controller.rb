@@ -230,10 +230,14 @@ class IRBViewController < NSViewController
   end
 
   def processInput(input)
-    addToHistory(input)
+    currentLineCount = @context.line
 
-    node = BasicNode.alloc.initWithPrefix(@context.prompt, value: input.htmlEscapeEntities)
-    addConsoleNode(node)
+    input.split("\n").each_with_index do |line, offset|
+      addToHistory(line)
+      node = BasicNode.alloc.initWithPrefix((currentLineCount + offset).to_s,
+                                     value: line.htmlEscapeEntities)
+      addConsoleNode(node)
+    end
 
     @thread[:input] = input
     @thread.run
@@ -275,6 +279,16 @@ class IRBViewController < NSViewController
   def control(control, textView: textView, doCommandBySelector: selector)
     #p selector
     case selector
+    when :"insertNewline:"
+      source = IRB::Source.new
+      source << textView.string
+      if source.code_block?
+        inputFromInputField(@inputField)
+      else
+        textView.string = "#{textView.string}\n"
+        sizeInputFieldToFit
+      end
+
     when :"cancelOperation:"
       toggleFullScreenMode(nil) if @splitView.isInFullScreenMode
     when :"insertTab:"
@@ -300,6 +314,17 @@ class IRBViewController < NSViewController
     true
   end
 
+  def sizeInputFieldToFit
+    unless @sizeTextField
+      @sizeTextField = NSTextField.alloc.init
+      @sizeTextField.bordered = false
+      @sizeTextField.bezeled = false
+    end
+    @sizeTextField.attributedStringValue = @inputField.attributedStringValue
+    size = @sizeTextField.cell.cellSizeForBounds(NSMakeRect(0, 0, @inputField.frameSize.width, 1000000))
+    @inputField.frameSize = NSMakeSize(@inputField.frameSize.width, size.height + 2)
+  end
+
   private
 
   def setupIRBForObject(object, binding: binding)
@@ -314,10 +339,12 @@ class IRBViewController < NSViewController
       loop do
         if input = Thread.current[:input]
           Thread.current[:input] = nil
-          unless context.process_line(input)
-            controller.performSelectorOnMainThread("terminate",
-                                        withObject: nil,
-                                     waitUntilDone: false)
+          input.split("\n").each do |line|
+            unless context.process_line(line)
+              controller.performSelectorOnMainThread("terminate",
+                                          withObject: nil,
+                                       waitUntilDone: false)
+            end
           end
           Thread.stop # done processing, stop and await new input
         end
