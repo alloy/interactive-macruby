@@ -286,35 +286,22 @@ class IRBViewController < NSViewController
 
     when :"cancelOperation:"
       toggleFullScreenMode(nil) if @splitView.isInFullScreenMode
-
     when :"insertTab:"
       textView.complete(self)
-
     when :"moveUp:"
-      lineCount = textView.string.strip.split("\n").size
-      if lineCount > 1
-        return false
+      if @currentHistoryIndex > 0
+        @currentHistoryIndex -= 1
+        textView.string = @history[@currentHistoryIndex]
       else
-        if @currentHistoryIndex > 0
-          @currentHistoryIndex -= 1
-          textView.string = @history[@currentHistoryIndex]
-        else
-          NSBeep()
-        end
+        NSBeep()
       end
-
     when :"moveDown:"
-      lineCount = textView.string.strip.split("\n").size
-      if lineCount > 1
-        return false
+      if @currentHistoryIndex < @history.size
+        @currentHistoryIndex += 1
+        line = @history[@currentHistoryIndex]
+        textView.string = line ? line : ''
       else
-        if @currentHistoryIndex < @history.size
-          @currentHistoryIndex += 1
-          line = @history[@currentHistoryIndex]
-          textView.string = line ? line : ''
-        else
-          NSBeep()
-        end
+        NSBeep()
       end
     else
       return false
