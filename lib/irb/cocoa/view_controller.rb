@@ -221,6 +221,12 @@ class IRBViewController < NSViewController
 
   def makeInputFieldPromptForInput(clear = true)
     @inputField.stringValue = '' if clear
+
+    if @heightBeforeSizeToFit
+      @inputField.frameSize = NSMakeSize(@inputField.frameSize.width, @heightBeforeSizeToFit)
+      @heightBeforeSizeToFit = nil
+    end
+
     @inputField.enabled = true
     view.window.makeFirstResponder(@inputField)
   end
@@ -327,6 +333,8 @@ class IRBViewController < NSViewController
     @sizeTextField.attributedStringValue = @inputField.attributedStringValue
     height = @sizeTextField.cell.cellSizeForBounds(NSMakeRect(0, 0, currentSize.width, 1000000)).height
     unless height < currentSize.height
+      @heightBeforeSizeToFit ||= currentSize.height
+      p @heightBeforeSizeToFit
       # the calculation that comes out isn't perfect imo,
       # so add 2 more points for each line in the source buffer
       height += (2 * @sourceBuffer.buffer.size) + 1

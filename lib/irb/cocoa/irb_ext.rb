@@ -64,12 +64,6 @@ module IRB
         super(object, binding)
       end
 
-      def process_line(line)
-        result = super
-        send_to_view_controller("makeInputFieldPromptForInput") if @source.level > 0
-        result
-      end
-
       def send_to_view_controller(method, arg = nil)
         @view_controller.performSelectorOnMainThread(method,
                                     withObject: arg,
