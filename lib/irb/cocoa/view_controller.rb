@@ -119,6 +119,8 @@ class IRBViewController < NSViewController
     @bottomDiv = @document.getElementById('bottom')
     @console = @document.getElementById('console')
     @console.send("addEventListener:::", 'click', self, false)
+    @_inputField = @document.getElementById('inputField')
+    @_inputField.send("addEventListener:::", "keypress", self, false)
     makeInputFieldPromptForInput
   end
 
@@ -129,10 +131,31 @@ class IRBViewController < NSViewController
   def handleEvent(event)
     element = event.target
     case element
+    when DOMHTMLInputElement
+      handleKeyEvent(event)
     when DOMHTMLTableCellElement
       toggleExpandableNode(element) if element.hasClassName?('expandable')
     when DOMHTMLAnchorElement
       newContextWithObjectOfNode(element)
+    end
+  end
+
+  def handleKeyEvent(event)
+    if event.keyCode == 13
+      processInput(@_inputField.value)
+    else
+      input = @_inputField.value + event.keyCode.chr
+      #p input
+      source = IRB::Source.new
+      source << input
+      row = @_inputField.parentNode.parentNode
+      #p source.syntax_error?
+      #p source.code_block?
+      if source.code_block?
+        row.className = "code-block start end"
+      else
+        row.className = "code-block start end incomplete"
+      end
     end
   end
 

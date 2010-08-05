@@ -32,7 +32,7 @@ td.value input
 }
 
 input[type=text]:focus {
-  outline: 0 none;
+	outline: 0 none;
 }
 
 td.prefix
@@ -64,21 +64,33 @@ td.prefix.expanded
 
 .code-block.start td.prefix, .code-block.start td.value
 {
-	border-top: 2px solid red;
+	border-top: 2px solid #9ACD32;
 }
 .code-block td.prefix
 {
-	border-left: 2px solid red;
+	border-left: 2px solid #9ACD32;
 	width: 28px;
 }
 .code-block td.value
 {
-	border-right: 2px solid red;
+	border-right: 2px solid #9ACD32;
 }
 /*TODO: For some reason this doesn't work :/*/
 .code-block.end td.prefix, .code-block.end td.value
 {
-	border-bottom; 2px solid red;
+	border-bottom; 2px solid #9ACD32;
+}
+.code-block.incomplete td.prefix
+{
+	border-top-color: red;
+	border-left-color: red;
+	border-bottom-color: red;
+}
+.code-block.incomplete td.value
+{
+	border-top-color: red;
+	border-right-color: red;
+	border-bottom-color: red;
 }
 
 span.black		{ color: black;   }
