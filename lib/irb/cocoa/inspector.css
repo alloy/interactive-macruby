@@ -70,6 +70,8 @@ td.prefix.expanded
 {
 	border-left: 2px solid #9ACD32;
 	width: 28px;
+	background-color: #9ACD32;
+	color: white;
 }
 .code-block td.value
 {
@@ -82,6 +84,7 @@ td.prefix.expanded
 }
 .code-block.incomplete td.prefix
 {
+	background-color: red;
 	border-top-color: red;
 	border-left-color: red;
 	border-bottom-color: red;
