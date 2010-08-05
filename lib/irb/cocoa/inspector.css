@@ -1,7 +1,21 @@
 body
 {
-	font-family: Menlo;
-	font-size: 11px;
+	margin: 0;
+	font-family: Monaco;
+	font-size: 12px;
+}
+
+table
+{
+	width: 100%;
+	padding: 0;
+	margin: 0;
+	border-spacing: 0;
+}
+
+td.value
+{
+	padding: 2px;
 }
 
 td.value img
@@ -9,15 +23,31 @@ td.value img
 	max-height: 100px;
 }
 
-td.prefix
+td.value input
 {
-	text-align: right;
-	vertical-align: text-top;
+	width: 100%;
+	border: none;
+	font-family: Monaco;
+	font-size: 12px;
+}
+
+input[type=text]:focus {
+  outline: 0 none;
 }
 
 td.prefix
 {
-	min-width: 11px;
+	width: 30px;
+	padding: 3px 5px;
+	text-align: right;
+	/*vertical-align: text-top;*/
+	color: #A9A9A9; /* dark gray */
+	background-color: #F5F5F5; /* light gray */
+	border-right: 1px dotted #A9A9A9;
+}
+
+td.prefix
+{
 	background-repeat: no-repeat;
 	background-position: right top;
 }
@@ -30,6 +60,25 @@ td.prefix.not-expanded
 td.prefix.expanded
 {
 	background-image: url('images/disclosureTriangleSmallDown.png');
+}
+
+.code-block.start td.prefix, .code-block.start td.value
+{
+	border-top: 2px solid red;
+}
+.code-block td.prefix
+{
+	border-left: 2px solid red;
+	width: 28px;
+}
+.code-block td.value
+{
+	border-right: 2px solid red;
+}
+/*TODO: For some reason this doesn't work :/*/
+.code-block.end td.prefix, .code-block.end td.value
+{
+	border-bottom; 2px solid red;
 }
 
 span.black		{ color: black;   }

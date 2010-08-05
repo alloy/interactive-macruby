@@ -53,6 +53,7 @@ class IRBViewController < NSViewController
   # actions
 
   def webView(webView, contextMenuItemsForElement: element, defaultMenuItems: defaultItems)
+    p defaultItems
     fullScreenLabel = @splitView.isInFullScreenMode ? "Exit Full Screen" : "Enter Full Screen"
     menuItems = [
       NSMenuItem.alloc.initWithTitle("Clear console", action: "clearConsole:", keyEquivalent: ""),
@@ -62,6 +63,7 @@ class IRBViewController < NSViewController
       NSMenuItem.alloc.initWithTitle("Zoom Out", action: "makeTextSmaller:", keyEquivalent: ""),
     ]
     menuItems.each { |i| i.target = self }
+    menuItems.unshift defaultItems[1]
     menuItems
   end
 
