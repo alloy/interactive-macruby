@@ -17,6 +17,9 @@ class IRBViewController < NSViewController
       @currentHistoryIndex = 0
       @expandableRowToNodeMap = {}
 
+      @codeBlockRows = []
+      @sourceBuffer = IRB::Source.new
+
       setupIRBForObject(object, binding: binding)
 
       self
@@ -40,7 +43,6 @@ class IRBViewController < NSViewController
   # actions
 
   def webView(webView, contextMenuItemsForElement: element, defaultMenuItems: defaultItems)
-    p defaultItems
     fullScreenLabel = @splitView.isInFullScreenMode ? "Exit Full Screen" : "Enter Full Screen"
     menuItems = [
       NSMenuItem.alloc.initWithTitle("Clear console", action: "clearConsole:", keyEquivalent: ""),
@@ -50,7 +52,6 @@ class IRBViewController < NSViewController
       NSMenuItem.alloc.initWithTitle("Zoom Out", action: "makeTextSmaller:", keyEquivalent: ""),
     ]
     menuItems.each { |i| i.target = self }
-    menuItems.unshift defaultItems[1]
     menuItems
   end
 
@@ -114,21 +115,63 @@ class IRBViewController < NSViewController
   def handleKeyEvent(event)
     input = @inputField.value + event.keyCode.chr
     #p input
-    source = IRB::Source.new(@context.source.buffer.dup)
-    source << input
-    p source.to_s
+    #@sourceBuffer ||= IRB::Source.new(@context.source.buffer.dup)
+    #@sourceBuffer << input
+    #p @sourceBuffer.to_s
     #p source.syntax_error?
     #p source.code_block?
+    
+    source = IRB::Source.new(@sourceBuffer.buffer.dup)
+    source << input
+    #p source.to_s
 
     if event.keyCode == 13
-      @inputPrompt.innerText = (@context.line + 1).to_s
-      @inputRow.className = "code-block end incomplete" unless IRB::Source.new([@inputField.value]).code_block?
-      processInput(@inputField.value)
-    else
+      currentLine = @context.line + @sourceBuffer.buffer.size
+      @inputPrompt.innerText = (currentLine + 1).to_s
+      node = BasicNode.alloc.initWithPrefix(currentLine.to_s, value: input.htmlEscapeEntities)
+      row = addConsoleNode(node)
+      @codeBlockRows << row
+
       if source.code_block?
+        puts "code block!"
+        #processInput(source.buffer)
+        processInput(["[1,2]"])
+        #removeCodeBlockStatusClasses
+        #@sourceBuffer = IRB::Source.new
+        #@codeBlockRows = []
+      else
+        puts "not a code block!"
+        # not done yet
+        @sourceBuffer = source
+        setCodeBlockStatusClasses(source.code_block?)
+        makeInputFieldPromptForInput
+      end
+    else
+      setCodeBlockStatusClasses(source.code_block?)
+    end
+  end
+
+  def removeCodeBlockStatusClasses
+    @codeBlockRows.each { |r| r.className = '' }
+    @inputField.className = ''
+  end
+
+  def setCodeBlockStatusClasses(complete)
+    if @codeBlockRows.empty?
+      if complete
         @inputRow.className = "code-block start end"
       else
         @inputRow.className = "code-block start end incomplete"
+      end
+    else
+      if complete
+        @codeBlockRows.first.className = "code-block start"
+        @codeBlockRows[1..-1].each { |r| r.className = "code-block" }
+        @inputRow.className = "code-block end"
+      else
+        @codeBlockRows.first.className = "code-block start incomplete"
+        @codeBlockRows[1..-1].each { |r| r.className = "code-block incomplete" }
+        @inputRow.className = "code-block end incomplete"
       end
     end
   end
@@ -161,7 +204,9 @@ class IRBViewController < NSViewController
 
   def addNode(node, toElement: element)
     @expandableRowToNodeMap[node.id] = node if node.expandable?
-    element.appendChild(rowForNode(node))
+    row = rowForNode(node)
+    element.appendChild(row)
+    row
   end
 
   def addConsoleNode(node)
@@ -181,7 +226,7 @@ class IRBViewController < NSViewController
     value  = @document.createElement("td")
 
     row['id']        = node.id
-    row.className    = "code-block start incomplete" unless IRB::Source.new([@inputField.value]).code_block?
+    row.className    = "code-block start incomplete" unless @sourceBuffer.code_block?
     prefix.className = "prefix#{' expandable not-expanded' if node.expandable?}"
     value.className  = "value"
     prefix.innerHTML = node.prefix
@@ -219,23 +264,15 @@ class IRBViewController < NSViewController
     #@inputField.stringValue = '' if clear
     #@inputField.enabled = true
     #view.window.makeFirstResponder(@inputField)
+
+    @inputField.value = '' if clear
+    @inputField.focus
   end
 
-  def inputFromInputField(inputField)
-    input = inputField.stringValue
-    unless input.empty?
-      inputField.enabled = false
-      processInput(input)
-    end
-  end
-
-  def processInput(input)
-    addToHistory(input)
-
-    node = BasicNode.alloc.initWithPrefix(@context.line.to_s, value: input.htmlEscapeEntities)
-    addConsoleNode(node)
-
-    @thread[:input] = input
+  def processInput(lines)
+    p lines
+    #lines.each { |line| addToHistory(line) }
+    @thread[:inputLines] = lines.dup
     @thread.run
   end
 
@@ -245,6 +282,7 @@ class IRBViewController < NSViewController
   end
 
   def receivedResult(result)
+    p result
     addConsoleNode(ObjectNode.nodeForObject(result))
     @delegate.receivedResult(self)
 
@@ -308,17 +346,23 @@ class IRBViewController < NSViewController
     @output = IRB::Cocoa::Output.new(self)
     @completion = IRB::Completion.new(@context)
     
+    Thread.abort_on_exception = true
+    
     @thread = Thread.new(self, @context) do |controller, context|
       IRB::Driver.current = controller
       Thread.stop # stop now, there's no input yet
       
       loop do
-        if input = Thread.current[:input]
-          Thread.current[:input] = nil
-          unless context.process_line(input)
-            controller.performSelectorOnMainThread("terminate",
-                                        withObject: nil,
-                                     waitUntilDone: false)
+        if lines = Thread.current[:inputLines]
+          Thread.current[:inputLines] = nil
+          lines.each do |line|
+            $stderr.puts line
+            unless context.process_line(input)
+              $stderr.puts "uhoh!"
+              controller.performSelectorOnMainThread("terminate",
+                                          withObject: nil,
+                                       waitUntilDone: false)
+            end
           end
           Thread.stop # done processing, stop and await new input
         end
