@@ -30,24 +30,11 @@ class IRBViewController < NSViewController
     @webView.frameLoadDelegate = self
     @webView.setUIDelegate(self)
 
-    @inputField = NSTextField.alloc.init
-    @inputField.bordered = false
-    @inputField.font = NSFont.fontWithName('Menlo Regular', size: 11)
-    @inputField.delegate = self
-    @inputField.target = self
-    @inputField.action = "inputFromInputField:"
-
-    @splitView = NSSplitView.alloc.init
-    @splitView.delegate = self
-    @splitView.vertical = false
-    @splitView.dividerStyle = NSSplitViewDividerStylePaneSplitter
-    @splitView.addSubview(@webView)
-    @splitView.addSubview(@inputField)
-    self.view = @splitView
-
     resourcePath = File.dirname(__FILE__)
     path = File.join(resourcePath, 'inspector.html')
     @webView.mainFrame.loadHTMLString(File.read(path), baseURL: NSURL.fileURLWithPath(resourcePath))
+
+    self.view = @webView
   end
 
   # actions
@@ -91,26 +78,6 @@ class IRBViewController < NSViewController
     makeInputFieldPromptForInput(false)
   end
 
-  # splitView delegate methods
-
-  def splitView(splitView, constrainSplitPosition: position, ofSubviewAt: index)
-    max = view.frameSize.height - INPUT_FIELD_HEIGHT - splitView.dividerThickness
-    position > max ? max : position
-  end
-
-  def splitView(splitView, resizeSubviewsWithOldSize: oldSize)
-    splitView.adjustSubviews
-
-    newSize = splitView.frameSize
-    webView, inputField = splitView.subviews
-
-    if oldSize.width == 0 || inputField.frameSize.height < INPUT_FIELD_HEIGHT
-      dividerThickness  = splitView.dividerThickness
-      webView.frameSize = NSMakeSize(newSize.width, newSize.height - (INPUT_FIELD_HEIGHT + dividerThickness))
-      inputField.frame  = NSMakeRect(0, newSize.height - INPUT_FIELD_HEIGHT, newSize.width, INPUT_FIELD_HEIGHT)
-    end
-  end
-
   # WebView related methods
 
   def webView(webView, didFinishLoadForFrame: frame)
@@ -120,8 +87,8 @@ class IRBViewController < NSViewController
     @console = @document.getElementById('console')
     @console.send("addEventListener:::", 'click', self, false)
 
-    @_inputField = @document.getElementById('inputField')
-    @_inputField.send("addEventListener:::", "keypress", self, false)
+    @inputField = @document.getElementById('inputField')
+    @inputField.send("addEventListener:::", "keypress", self, false)
     @inputRow = @document.getElementById('inputRow')
     @inputPrompt = @document.getElementById('inputPrompt')
 
@@ -145,7 +112,7 @@ class IRBViewController < NSViewController
   end
 
   def handleKeyEvent(event)
-    input = @_inputField.value + event.keyCode.chr
+    input = @inputField.value + event.keyCode.chr
     #p input
     source = IRB::Source.new(@context.source.buffer.dup)
     source << input
@@ -155,8 +122,8 @@ class IRBViewController < NSViewController
 
     if event.keyCode == 13
       @inputPrompt.innerText = (@context.line + 1).to_s
-      @inputRow.className = "code-block end incomplete" unless IRB::Source.new([@_inputField.value]).code_block?
-      processInput(@_inputField.value)
+      @inputRow.className = "code-block end incomplete" unless IRB::Source.new([@inputField.value]).code_block?
+      processInput(@inputField.value)
     else
       if source.code_block?
         @inputRow.className = "code-block start end"
@@ -214,7 +181,7 @@ class IRBViewController < NSViewController
     value  = @document.createElement("td")
 
     row['id']        = node.id
-    row.className    = "code-block start incomplete" unless IRB::Source.new([@_inputField.value]).code_block?
+    row.className    = "code-block start incomplete" unless IRB::Source.new([@inputField.value]).code_block?
     prefix.className = "prefix#{' expandable not-expanded' if node.expandable?}"
     value.className  = "value"
     prefix.innerHTML = node.prefix
@@ -249,8 +216,8 @@ class IRBViewController < NSViewController
   # input/output related methods
 
   def makeInputFieldPromptForInput(clear = true)
-    @inputField.stringValue = '' if clear
-    @inputField.enabled = true
+    #@inputField.stringValue = '' if clear
+    #@inputField.enabled = true
     #view.window.makeFirstResponder(@inputField)
   end
 
