@@ -119,8 +119,12 @@ class IRBViewController < NSViewController
     @bottomDiv = @document.getElementById('bottom')
     @console = @document.getElementById('console')
     @console.send("addEventListener:::", 'click', self, false)
+
     @_inputField = @document.getElementById('inputField')
     @_inputField.send("addEventListener:::", "keypress", self, false)
+    @inputRow = @document.getElementById('inputRow')
+    @inputPrompt = @document.getElementById('inputPrompt')
+
     makeInputFieldPromptForInput
   end
 
@@ -141,20 +145,23 @@ class IRBViewController < NSViewController
   end
 
   def handleKeyEvent(event)
+    input = @_inputField.value + event.keyCode.chr
+    #p input
+    source = IRB::Source.new(@context.source.buffer.dup)
+    source << input
+    p source.to_s
+    #p source.syntax_error?
+    #p source.code_block?
+
     if event.keyCode == 13
+      @inputPrompt.innerText = (@context.line + 1).to_s
+      @inputRow.className = "code-block end incomplete" unless IRB::Source.new([@_inputField.value]).code_block?
       processInput(@_inputField.value)
     else
-      input = @_inputField.value + event.keyCode.chr
-      #p input
-      source = IRB::Source.new
-      source << input
-      row = @_inputField.parentNode.parentNode
-      #p source.syntax_error?
-      #p source.code_block?
       if source.code_block?
-        row.className = "code-block start end"
+        @inputRow.className = "code-block start end"
       else
-        row.className = "code-block start end incomplete"
+        @inputRow.className = "code-block start end incomplete"
       end
     end
   end
@@ -207,6 +214,7 @@ class IRBViewController < NSViewController
     value  = @document.createElement("td")
 
     row['id']        = node.id
+    row.className    = "code-block start incomplete" unless IRB::Source.new([@_inputField.value]).code_block?
     prefix.className = "prefix#{' expandable not-expanded' if node.expandable?}"
     value.className  = "value"
     prefix.innerHTML = node.prefix
@@ -243,7 +251,7 @@ class IRBViewController < NSViewController
   def makeInputFieldPromptForInput(clear = true)
     @inputField.stringValue = '' if clear
     @inputField.enabled = true
-    view.window.makeFirstResponder(@inputField)
+    #view.window.makeFirstResponder(@inputField)
   end
 
   def inputFromInputField(inputField)
@@ -257,7 +265,7 @@ class IRBViewController < NSViewController
   def processInput(input)
     addToHistory(input)
 
-    node = BasicNode.alloc.initWithPrefix(@context.prompt, value: input.htmlEscapeEntities)
+    node = BasicNode.alloc.initWithPrefix(@context.line.to_s, value: input.htmlEscapeEntities)
     addConsoleNode(node)
 
     @thread[:input] = input
@@ -272,6 +280,7 @@ class IRBViewController < NSViewController
   def receivedResult(result)
     addConsoleNode(ObjectNode.nodeForObject(result))
     @delegate.receivedResult(self)
+
     makeInputFieldPromptForInput
     scrollWebViewToBottom
   end
