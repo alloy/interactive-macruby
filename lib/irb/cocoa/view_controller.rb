@@ -59,6 +59,8 @@ class IRBViewController < NSViewController
     @console.innerHTML = ''
     @expandableRowToNodeMap = {}
     @context.clear_buffer
+    @sourceBuffer = IRB::Source.new
+    @codeBlockRows = []
     makeInputFieldPromptForInput(false)
   end
 
@@ -123,7 +125,8 @@ class IRBViewController < NSViewController
     
     source = IRB::Source.new(@sourceBuffer.buffer.dup)
     source << input
-    #p source.to_s
+    p source.to_s
+    p source.syntax_error?
 
     if event.keyCode == 13
       currentLine = @context.line + @sourceBuffer.buffer.size
@@ -131,7 +134,6 @@ class IRBViewController < NSViewController
       node = BasicNode.alloc.initWithPrefix(currentLine.to_s, value: input.htmlEscapeEntities)
       row = addConsoleNode(node)
       @codeBlockRows << row
-
       if source.code_block?
         #puts "code block!"
         processInput(source.buffer)
@@ -142,11 +144,11 @@ class IRBViewController < NSViewController
         puts "not a code block!"
         # not done yet
         @sourceBuffer = source
-        setCodeBlockStatusClasses(source.code_block?)
+        setCodeBlockClassesWithStatus(source.code_block?, syntaxError: source.syntax_error?)
         makeInputFieldPromptForInput
       end
     else
-      setCodeBlockStatusClasses(source.code_block?)
+      setCodeBlockClassesWithStatus(source.code_block?, syntaxError: source.syntax_error?)
     end
   end
 
@@ -155,15 +157,21 @@ class IRBViewController < NSViewController
     @inputField.className = ''
   end
 
-  def setCodeBlockStatusClasses(complete)
+  def setCodeBlockClassesWithStatus(complete, syntaxError: syntaxError)
     if @codeBlockRows.empty?
-      if complete
+      if syntaxError
+        @inputRow.className = "code-block start end syntax-error"
+      elsif complete
         @inputRow.className = "code-block start end"
       else
         @inputRow.className = "code-block start end incomplete"
       end
     else
-      if complete
+      if syntaxError
+        @codeBlockRows.first.className = "code-block start syntax-error"
+        @codeBlockRows[1..-1].each { |r| r.className = "code-block syntax-error" }
+        @inputRow.className = "code-block end syntax-error"
+      elsif complete
         @codeBlockRows.first.className = "code-block start"
         @codeBlockRows[1..-1].each { |r| r.className = "code-block" }
         @inputRow.className = "code-block end"

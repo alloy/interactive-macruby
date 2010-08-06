@@ -84,17 +84,31 @@ td.prefix.expanded
 }
 .code-block.incomplete td.prefix
 {
+	background-color: #FFA500;
+	border-top-color: #FFA500;
+	border-left-color: #FFA500;
+	border-bottom-color: #FFA500;
+}
+.code-block.incomplete td.value
+{
+	border-top-color: #FFA500;
+	border-right-color: #FFA500;
+	border-bottom-color: #FFA500;
+}
+.code-block.syntax-error td.prefix
+{
 	background-color: red;
 	border-top-color: red;
 	border-left-color: red;
 	border-bottom-color: red;
 }
-.code-block.incomplete td.value
+.code-block.syntax-error td.value
 {
 	border-top-color: red;
 	border-right-color: red;
 	border-bottom-color: red;
 }
+
 
 span.black		{ color: black;   }
 span.red		{ color: red;     }
