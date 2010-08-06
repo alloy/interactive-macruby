@@ -102,6 +102,11 @@ class IRBViewController < NSViewController
     @bottomDiv.scrollIntoView(true)
   end
 
+  def makeInputFieldPromptForInput(clear = true)
+    @inputField.value = '' if clear
+    @inputField.focus
+  end
+
   def handleEvent(event)
     element = event.target
     case element
@@ -116,17 +121,9 @@ class IRBViewController < NSViewController
 
   def handleKeyEvent(event)
     input = @inputField.value + event.keyCode.chr
-    #p input
-    #@sourceBuffer ||= IRB::Source.new(@context.source.buffer.dup)
-    #@sourceBuffer << input
-    #p @sourceBuffer.to_s
-    #p source.syntax_error?
-    #p source.code_block?
-    
+
     source = IRB::Source.new(@sourceBuffer.buffer.dup)
     source << input
-    p source.to_s
-    p source.syntax_error?
 
     if event.keyCode == 13
       currentLine = @context.line + @sourceBuffer.buffer.size
@@ -135,14 +132,11 @@ class IRBViewController < NSViewController
       row = addConsoleNode(node)
       @codeBlockRows << row
       if source.code_block?
-        #puts "code block!"
         processInput(source.buffer)
         removeCodeBlockStatusClasses
         @sourceBuffer = IRB::Source.new
         @codeBlockRows = []
       else
-        puts "not a code block!"
-        # not done yet
         @sourceBuffer = source
         setCodeBlockClassesWithStatus(source.code_block?, syntaxError: source.syntax_error?)
         makeInputFieldPromptForInput
@@ -266,15 +260,6 @@ class IRBViewController < NSViewController
 
   # input/output related methods
 
-  def makeInputFieldPromptForInput(clear = true)
-    #@inputField.stringValue = '' if clear
-    #@inputField.enabled = true
-    #view.window.makeFirstResponder(@inputField)
-
-    @inputField.value = '' if clear
-    @inputField.focus
-  end
-
   def processInput(lines)
     #p lines
     #lines.each { |line| addToHistory(line) }
@@ -288,7 +273,7 @@ class IRBViewController < NSViewController
   end
 
   def receivedResult(result)
-    p result
+    #p result
     addConsoleNode(ObjectNode.nodeForObject(result))
     @delegate.receivedResult(self)
 
@@ -351,8 +336,6 @@ class IRBViewController < NSViewController
     @context = IRB::Cocoa::Context.new(self, object, binding)
     @output = IRB::Cocoa::Output.new(self)
     @completion = IRB::Completion.new(@context)
-    
-    Thread.abort_on_exception = true
     
     @thread = Thread.new(self, @context) do |controller, context|
       IRB::Driver.current = controller
