@@ -133,12 +133,11 @@ class IRBViewController < NSViewController
       @codeBlockRows << row
 
       if source.code_block?
-        puts "code block!"
-        #processInput(source.buffer)
-        processInput(["[1,2]"])
-        #removeCodeBlockStatusClasses
-        #@sourceBuffer = IRB::Source.new
-        #@codeBlockRows = []
+        #puts "code block!"
+        processInput(source.buffer)
+        removeCodeBlockStatusClasses
+        @sourceBuffer = IRB::Source.new
+        @codeBlockRows = []
       else
         puts "not a code block!"
         # not done yet
@@ -226,7 +225,6 @@ class IRBViewController < NSViewController
     value  = @document.createElement("td")
 
     row['id']        = node.id
-    row.className    = "code-block start incomplete" unless @sourceBuffer.code_block?
     prefix.className = "prefix#{' expandable not-expanded' if node.expandable?}"
     value.className  = "value"
     prefix.innerHTML = node.prefix
@@ -270,7 +268,7 @@ class IRBViewController < NSViewController
   end
 
   def processInput(lines)
-    p lines
+    #p lines
     #lines.each { |line| addToHistory(line) }
     @thread[:inputLines] = lines.dup
     @thread.run
@@ -356,9 +354,7 @@ class IRBViewController < NSViewController
         if lines = Thread.current[:inputLines]
           Thread.current[:inputLines] = nil
           lines.each do |line|
-            $stderr.puts line
-            unless context.process_line(input)
-              $stderr.puts "uhoh!"
+            unless context.process_line(line)
               controller.performSelectorOnMainThread("terminate",
                                           withObject: nil,
                                        waitUntilDone: false)
