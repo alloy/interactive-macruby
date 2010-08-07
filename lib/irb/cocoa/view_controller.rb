@@ -126,20 +126,24 @@ class IRBViewController < NSViewController
     source << input
 
     if event.keyCode == 13
-      currentLine = @context.line + @codeBlockRows.size
-      @inputPrompt.innerText = (currentLine + 1).to_s
-      node = BasicNode.alloc.initWithPrefix(currentLine.to_s, value: input.htmlEscapeEntities)
-      row = addConsoleNode(node)
-      @codeBlockRows << row
-      if source.code_block?
-        processInput(source.buffer)
-        removeCodeBlockStatusClasses
-        @sourceBuffer = IRB::Source.new
-        @codeBlockRows = []
+      if source.syntax_error?
+        NSBeep()
       else
-        @sourceBuffer = source
-        setCodeBlockClassesWithStatus(source.code_block?, syntaxError: source.syntax_error?)
-        makeInputFieldPromptForInput
+        currentLine = @context.line + @codeBlockRows.size
+        @inputPrompt.innerText = (currentLine + 1).to_s
+        node = BasicNode.alloc.initWithPrefix(currentLine.to_s, value: input.htmlEscapeEntities)
+        row = addConsoleNode(node)
+        @codeBlockRows << row
+        if source.code_block?
+          removeCodeBlockStatusClasses
+          @sourceBuffer = IRB::Source.new
+          @codeBlockRows = []
+          processInput(source.buffer)
+        else
+          @sourceBuffer = source
+          setCodeBlockClassesWithStatus(source.code_block?, syntaxError: source.syntax_error?)
+          makeInputFieldPromptForInput
+        end
       end
     else
       setCodeBlockClassesWithStatus(source.code_block?, syntaxError: source.syntax_error?)
