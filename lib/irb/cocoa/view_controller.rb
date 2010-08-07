@@ -48,7 +48,7 @@ class IRBViewController < NSViewController
   # actions
 
   def webView(webView, contextMenuItemsForElement: element, defaultMenuItems: defaultItems)
-    fullScreenLabel = @splitView.isInFullScreenMode ? "Exit Full Screen" : "Enter Full Screen"
+    fullScreenLabel = @webView.isInFullScreenMode ? "Exit Full Screen" : "Enter Full Screen"
     menuItems = [
       NSMenuItem.alloc.initWithTitle("Clear console", action: "clearConsole:", keyEquivalent: ""),
       NSMenuItem.separatorItem,
@@ -70,6 +70,7 @@ class IRBViewController < NSViewController
     @expandableRowToNodeMap = {}
     @context.clear_buffer
     clearBuffer!
+    setCodeBlockClassesWithCurrentInputFieldSource
     makeInputFieldPromptForInput(false)
   end
 
@@ -82,10 +83,10 @@ class IRBViewController < NSViewController
   end
 
   def toggleFullScreenMode(sender)
-    if @splitView.isInFullScreenMode
-      @splitView.exitFullScreenModeWithOptions({})
+    if @webView.isInFullScreenMode
+      @webView.exitFullScreenModeWithOptions({})
     else
-      @splitView.enterFullScreenMode(NSScreen.mainScreen, withOptions: {})
+      @webView.enterFullScreenMode(NSScreen.mainScreen, withOptions: {})
     end
     makeInputFieldPromptForInput(false)
   end
@@ -192,6 +193,10 @@ class IRBViewController < NSViewController
   def removeCodeBlockStatusClasses
     @codeBlockRows.each { |r| r.className = '' }
     @inputRow.className = ''
+  end
+
+  def setCodeBlockClassesWithCurrentInputFieldSource
+    setCodeBlockClassesWithSource(IRB::Source.new([@inputField.value]))
   end
 
   def setCodeBlockClassesWithSource(source)
