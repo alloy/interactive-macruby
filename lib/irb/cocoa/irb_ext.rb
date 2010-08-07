@@ -97,4 +97,6 @@ module IRB
 end
 
 IRB.formatter = IRB::Cocoa::ColoredFormatter.new
+IRB.formatter.color_scheme = :light_background
+
 $stdout = IRB::Driver::OutputRedirector.new
