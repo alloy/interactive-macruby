@@ -17,8 +17,7 @@ class IRBViewController < NSViewController
       @currentHistoryIndex = 0
       @expandableRowToNodeMap = {}
 
-      @codeBlockRows = []
-      @sourceBuffer = IRB::Source.new
+      clearBuffer!
 
       setupIRBForObject(object, binding: binding)
 
@@ -55,12 +54,16 @@ class IRBViewController < NSViewController
     menuItems
   end
 
+  def clearBuffer!
+    @sourceBuffer = IRB::Source.new
+    @codeBlockRows = []
+  end
+
   def clearConsole(sender)
     @console.innerHTML = ''
     @expandableRowToNodeMap = {}
     @context.clear_buffer
-    @sourceBuffer = IRB::Source.new
-    @codeBlockRows = []
+    clearBuffer!
     makeInputFieldPromptForInput(false)
   end
 
@@ -104,6 +107,7 @@ class IRBViewController < NSViewController
 
   def makeInputFieldPromptForInput(clear = true)
     @inputField.value = '' if clear
+    @inputRow.style.display = 'table-row' # show! currently only sets to 'block'
     @inputField.focus
   end
 
@@ -119,8 +123,17 @@ class IRBViewController < NSViewController
     end
   end
 
+  DELETE_KEY = 63272
+  ARROW_KEYS = [63232, 63233, 63234, 63235]
+
   def handleKeyEvent(event)
-    input = @inputField.value + event.keyCode.chr
+    return if ARROW_KEYS.include?(event.keyCode)
+
+    input = @inputField.value
+    if event.charCode >= 32 && event.keyCode != DELETE_KEY
+      # ugh
+      input += event.charCode.chr.force_encoding('UTF-8')
+    end
 
     source = IRB::Source.new(@sourceBuffer.buffer.dup)
     source << input
@@ -136,40 +149,44 @@ class IRBViewController < NSViewController
         @codeBlockRows << row
         if source.code_block?
           removeCodeBlockStatusClasses
-          @sourceBuffer = IRB::Source.new
-          @codeBlockRows = []
+          clearBuffer!
+          @inputRow.hide!
           processInput(source.buffer)
         else
           @sourceBuffer = source
-          setCodeBlockClassesWithStatus(source.code_block?, syntaxError: source.syntax_error?)
+          setCodeBlockClassesWithSource(source)
           makeInputFieldPromptForInput
         end
       end
     else
-      setCodeBlockClassesWithStatus(source.code_block?, syntaxError: source.syntax_error?)
+      setCodeBlockClassesWithSource(source)
     end
   end
 
   def removeCodeBlockStatusClasses
     @codeBlockRows.each { |r| r.className = '' }
-    @inputField.className = ''
+    @inputRow.className = ''
   end
 
-  def setCodeBlockClassesWithStatus(complete, syntaxError: syntaxError)
+  def setCodeBlockClassesWithSource(source)
     if @codeBlockRows.empty?
-      if syntaxError
-        @inputRow.className = "code-block start end syntax-error"
-      elsif complete
-        @inputRow.className = "code-block start end"
+      if source.to_s.empty?
+        @inputRow.className = ""
       else
-        @inputRow.className = "code-block start end incomplete"
+        if source.syntax_error?
+          @inputRow.className = "code-block start end syntax-error"
+        elsif source.code_block?
+          @inputRow.className = "code-block start end"
+        else
+          @inputRow.className = "code-block start end incomplete"
+        end
       end
     else
-      if syntaxError
+      if source.syntax_error?
         @codeBlockRows.first.className = "code-block start syntax-error"
         @codeBlockRows[1..-1].each { |r| r.className = "code-block syntax-error" }
         @inputRow.className = "code-block end syntax-error"
-      elsif complete
+      elsif source.code_block?
         @codeBlockRows.first.className = "code-block start"
         @codeBlockRows[1..-1].each { |r| r.className = "code-block" }
         @inputRow.className = "code-block end"
