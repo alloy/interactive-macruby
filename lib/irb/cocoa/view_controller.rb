@@ -124,16 +124,26 @@ class IRBViewController < NSViewController
   end
 
   DELETE_KEY = 63272
-  ARROW_KEYS = [63232, 63233, 63234, 63235]
-
+  IGNORE_KEYS = [
+    63232, 63233, 63234, 63235, # arrow keys
+    (63236..63247).to_a, # F1..F12
+    63248, # print screen
+    63273, 63275, # home, end
+    63276, 63277, # page up/down
+    63289, # numlock
+    63302, #insert
+  ].flatten
+  
   def handleKeyEvent(event)
-    return if ARROW_KEYS.include?(event.keyCode)
+    return if IGNORE_KEYS.include?(event.keyCode)
 
     input = @inputField.value
     if event.charCode >= 32 && event.keyCode != DELETE_KEY
       # ugh
       input += event.charCode.chr.force_encoding('UTF-8')
     end
+    #p input
+    #p event.keyCode
 
     source = IRB::Source.new(@sourceBuffer.buffer.dup)
     source << input
