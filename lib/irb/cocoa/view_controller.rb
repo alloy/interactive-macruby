@@ -126,7 +126,7 @@ class IRBViewController < NSViewController
     source << input
 
     if event.keyCode == 13
-      currentLine = @context.line + @sourceBuffer.buffer.size
+      currentLine = @context.line + @codeBlockRows.size
       @inputPrompt.innerText = (currentLine + 1).to_s
       node = BasicNode.alloc.initWithPrefix(currentLine.to_s, value: input.htmlEscapeEntities)
       row = addConsoleNode(node)
