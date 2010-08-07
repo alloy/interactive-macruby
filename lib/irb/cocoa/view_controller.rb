@@ -36,6 +36,12 @@ class IRBViewController < NSViewController
     path = File.join(resourcePath, 'inspector.html')
     @webView.mainFrame.loadHTMLString(File.read(path), baseURL: NSURL.fileURLWithPath(resourcePath))
 
+    @completionView = NSTextView.alloc.initWithFrame(NSMakeRect(0, 0, 1, 1))
+    @completionView.hidden = true
+    @completionView.richText = false
+    @completionView.delegate = self
+    @webView.addSubview(@completionView)
+
     self.view = @webView
   end
 
@@ -123,6 +129,8 @@ class IRBViewController < NSViewController
     end
   end
 
+  TAB_KEY = 9
+  RETURN_KEY = 13
   DELETE_KEY = 63272
   IGNORE_KEYS = [
     63232, 63233, 63234, 63235, # arrow keys
@@ -148,7 +156,8 @@ class IRBViewController < NSViewController
     source = IRB::Source.new(@sourceBuffer.buffer.dup)
     source << input
 
-    if event.keyCode == 13
+    case event.keyCode
+    when RETURN_KEY
       if source.syntax_error?
         NSBeep()
       else
@@ -168,6 +177,10 @@ class IRBViewController < NSViewController
           makeInputFieldPromptForInput
         end
       end
+    when TAB_KEY
+      p 'complete!'
+      @completionView.string = source.to_s
+      @completionView.complete(self)
     else
       setCodeBlockClassesWithSource(source)
     end
@@ -344,10 +357,32 @@ class IRBViewController < NSViewController
 
   # delegate methods of the input cell
 
-  def control(control, textView: textView, completions: completions, forPartialWordRange: range, indexOfSelectedItem: item)
+  def textView(textView, completions: completions, forPartialWordRange: range, indexOfSelectedItem: item)
+    # get the position of the top-left corner of the bottom div from the top-left corner of the document
+    x = y = 0
+    node = @bottomDiv
+    begin
+      x += node.offsetLeft
+      y += node.offsetTop
+    end while node = node.offsetParent
+    # offset the y coord by the scrolled offset
+    # TODO is there a better way to get this?
+    scrollY = @webView.windowScriptObject.evaluateWebScript('window.scrollY')
+    y -= scrollY
+    # flip the y coord and move the text view a bit more up (15px)
+    frame = NSMakeRect(x, (@webView.frameSize.height - y) + 15, 1, 1)
+    @completionView.frame = frame
+
     @completion.call(textView.string).map { |s| s[range.location..-1] }
   end
-  
+
+  def textViewDidChangeSelection(notification)
+    range = @completionView.selectedRanges.first.rangeValue
+    @inputField.value = @completionView.string
+    @inputField.selectionStart = range.location
+    @inputField.selectionEnd = range.location + range.length
+  end
+
   def control(control, textView: textView, doCommandBySelector: selector)
     #p selector
     case selector
