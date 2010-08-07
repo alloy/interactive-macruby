@@ -178,9 +178,12 @@ class IRBViewController < NSViewController
         end
       end
     when TAB_KEY
-      p 'complete!'
-      @completionView.string = source.to_s
-      @completionView.complete(self)
+      if @inputField.value.empty?
+        NSBeep()
+      else
+        @completionView.string = source.to_s
+        @completionView.complete(self)
+      end
     else
       setCodeBlockClassesWithSource(source)
     end
