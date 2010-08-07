@@ -42,3 +42,9 @@ class DOMHTMLElement
     style.display = 'block'
   end
 end
+
+class DOMHTMLCollection
+  def each
+    length.times { |i| yield item(i) }
+  end
+end

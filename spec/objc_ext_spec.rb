@@ -21,8 +21,8 @@ end
 describe "DOMHTMLElement" do
   before do
     webView = WebView.alloc.init
-    document = webView.mainFrame.DOMDocument
-    @element = document.createElement('div')
+    @document = webView.mainFrame.DOMDocument
+    @element = @document.createElement('div')
     @element['class'] = 'red brown'
   end
 
@@ -54,5 +54,19 @@ describe "DOMHTMLElement" do
     @element.hide!
     @element.show!
     @element.style.display.should == 'block'
+  end
+
+  it "iterates over a collection" do
+    table = @document.createElement('table')
+    row = @document.createElement('tr')
+    row.className = "foo"
+    table.appendChild(row)
+    row = @document.createElement('tr')
+    row.className = "bar"
+    table.appendChild(row)
+
+    yielded = []
+    table.children.each { |child| p child; yielded << child.className }
+    yielded.should == %w{ foo bar }
   end
 end

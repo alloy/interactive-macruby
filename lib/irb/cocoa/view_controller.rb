@@ -117,7 +117,7 @@ class IRBViewController < NSViewController
     when DOMHTMLInputElement
       handleKeyEvent(event)
     when DOMHTMLTableCellElement
-      toggleExpandableNode(element) if element.hasClassName?('expandable')
+      toggleExpandableNode(element, recursiveClose: event.altKey) if element.hasClassName?('expandable')
     when DOMHTMLAnchorElement
       newContextWithObjectOfNode(element)
     end
@@ -198,20 +198,28 @@ class IRBViewController < NSViewController
     end
   end
 
-  def toggleExpandableNode(expandNode)
+  def toggleExpandableNode(expandNode, recursiveClose: recursiveClose)
     row   = expandNode.parentNode
     value = row.lastChild
     if expandNode.hasClassName?('not-expanded')
-      # if there is a table, show it, otherwise create and add one
-      if (table = value.lastChild) && table.is_a?(DOMHTMLTableElement)
-        table.show!
-      else
-        value.appendChild(childrenTableForNode(row['id'].to_i))
+      unless recursiveClose
+        # if there is a table, show it, otherwise create and add one
+        if (table = value.lastChild) && table.is_a?(DOMHTMLTableElement)
+          table.show!
+        else
+          value.appendChild(childrenTableForNode(row['id'].to_i))
+        end
+        expandNode.replaceClassName('not-expanded', 'expanded')
       end
-      expandNode.replaceClassName('not-expanded', 'expanded')
     else
       expandNode.replaceClassName('expanded', 'not-expanded')
       value.lastChild.hide!
+      if recursiveClose
+        value.lastChild.children.each do |row|
+          node = row.firstChild
+          toggleExpandableNode(node, recursiveClose: true) if node.hasClassName?('expanded')
+        end
+      end
     end
   end
 
