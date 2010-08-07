@@ -96,7 +96,7 @@ class IRBViewController < NSViewController
     @inputField = @document.getElementById('inputField')
     @inputField.send("addEventListener:::", "keypress", self, false)
     @inputRow = @document.getElementById('inputRow')
-    @inputPrompt = @document.getElementById('inputPrompt')
+    @inputLineNumber = @document.getElementById('inputLineNumber')
 
     makeInputFieldPromptForInput
   end
@@ -143,7 +143,7 @@ class IRBViewController < NSViewController
         NSBeep()
       else
         currentLine = @context.line + @codeBlockRows.size
-        @inputPrompt.innerText = (currentLine + 1).to_s
+        @inputLineNumber.innerText = (currentLine + 1).to_s
         node = BasicNode.alloc.initWithPrefix(currentLine.to_s, value: input.htmlEscapeEntities)
         row = addConsoleNode(node)
         @codeBlockRows << row
@@ -198,19 +198,19 @@ class IRBViewController < NSViewController
     end
   end
 
-  def toggleExpandableNode(prefix)
-    row   = prefix.parentNode
+  def toggleExpandableNode(expandNode)
+    row   = expandNode.parentNode
     value = row.lastChild
-    if prefix.hasClassName?('not-expanded')
+    if expandNode.hasClassName?('not-expanded')
       # if there is a table, show it, otherwise create and add one
       if (table = value.lastChild) && table.is_a?(DOMHTMLTableElement)
         table.show!
       else
         value.appendChild(childrenTableForNode(row['id'].to_i))
       end
-      prefix.replaceClassName('not-expanded', 'expanded')
+      expandNode.replaceClassName('not-expanded', 'expanded')
     else
-      prefix.replaceClassName('expanded', 'not-expanded')
+      expandNode.replaceClassName('expanded', 'not-expanded')
       value.lastChild.hide!
     end
   end
@@ -224,40 +224,47 @@ class IRBViewController < NSViewController
 
   # DOM element related methods
 
-  def addNode(node, toElement: element)
+  def addNode(node, toElement: element, includeLineNumberColumn: includeLineNumberColumn)
     @expandableRowToNodeMap[node.id] = node if node.expandable?
-    row = rowForNode(node)
+    row = rowForNode(node, includeLineNumberColumn: includeLineNumberColumn)
     element.appendChild(row)
     row
   end
 
   def addConsoleNode(node)
-    addNode(node, toElement: @console)
+    addNode(node, toElement: @console, includeLineNumberColumn: true)
   end
 
   def childrenTableForNode(id)
     node = @expandableRowToNodeMap[id]
     table = @document.createElement('table')
-    node.children.each { |childNode| addNode(childNode, toElement: table) }
+    node.children.each { |childNode| addNode(childNode, toElement: table, includeLineNumberColumn: false) }
     table
   end
 
-  def rowForNode(node)
-    row    = @document.createElement("tr")
-    prefix = @document.createElement("td")
-    value  = @document.createElement("td")
+  def rowForNode(node, includeLineNumberColumn: includeLineNumberColumn)
+    row        = @document.createElement("tr")
+    expandNode = @document.createElement("td")
+    value      = @document.createElement("td")
 
-    row['id']        = node.id
-    prefix.className = "prefix#{' expandable not-expanded' if node.expandable?}"
-    value.className  = "value"
-    prefix.innerHTML = node.prefix
+    if includeLineNumberColumn
+      lineNumber = @document.createElement("td")
+      lineNumber.className = "lineNumber"
+      lineNumber.innerHTML = node.prefix
+      row.appendChild(lineNumber)
+    end
+
+    row['id'] = node.id
+    expandNode.className = "expandNode#{' expandable not-expanded' if node.expandable?}"
+    value.className = "value"
+
     if node.is_a?(NSImageNode)
       value.appendChild(imageElementForNode(node))
     else
       value.innerHTML = node.value
     end
 
-    row.appendChild(prefix)
+    row.appendChild(expandNode)
     row.appendChild(value)
     row
   end

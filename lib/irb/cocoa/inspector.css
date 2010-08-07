@@ -35,38 +35,38 @@ input[type=text]:focus {
 	outline: 0 none;
 }
 
-td.prefix
+td.lineNumber
 {
 	width: 30px;
 	padding: 3px 5px;
 	text-align: right;
-	/*vertical-align: text-top;*/
 	color: #A9A9A9; /* dark gray */
 	background-color: #F5F5F5; /* light gray */
 	border-right: 1px dotted #A9A9A9;
 }
 
-td.prefix
+td.expandNode
 {
+	width: 11px;
 	background-repeat: no-repeat;
-	background-position: right top;
+	background-position: right 3px;
 }
 
-td.prefix.not-expanded
+td.expandNode.not-expanded
 {
 	background-image: url('images/disclosureTriangleSmallRight.png');
 }
 
-td.prefix.expanded
+td.expandNode.expanded
 {
 	background-image: url('images/disclosureTriangleSmallDown.png');
 }
 
-.code-block.start td.prefix, .code-block.start td.value
+.code-block.start td.lineNumber, .code-block.start td.expandNode, .code-block.start td.value
 {
 	border-top: 2px solid #9ACD32;
 }
-.code-block td.prefix
+.code-block td.lineNumber
 {
 	border-left: 2px solid #9ACD32;
 	width: 28px;
@@ -78,31 +78,31 @@ td.prefix.expanded
 	border-right: 2px solid #9ACD32;
 }
 /*TODO: For some reason this doesn't work :/*/
-.code-block.end td.prefix, .code-block.end td.value
+.code-block.end td.lineNumber, .code-block.end td.expandNode, .code-block.end td.value
 {
 	border-bottom; 2px solid #9ACD32;
 }
-.code-block.incomplete td.prefix
+.code-block.incomplete td.lineNumber
 {
 	background-color: #FFA500;
 	border-top-color: #FFA500;
 	border-left-color: #FFA500;
 	border-bottom-color: #FFA500;
 }
-.code-block.incomplete td.value
+.code-block.incomplete td.expandNode, .code-block.incomplete td.value
 {
 	border-top-color: #FFA500;
 	border-right-color: #FFA500;
 	border-bottom-color: #FFA500;
 }
-.code-block.syntax-error td.prefix
+.code-block.syntax-error td.lineNumber
 {
 	background-color: red;
 	border-top-color: red;
 	border-left-color: red;
 	border-bottom-color: red;
 }
-.code-block.syntax-error td.value
+.code-block.syntax-error td.expandNode, .code-block.syntax-error td.value
 {
 	border-top-color: red;
 	border-right-color: red;
