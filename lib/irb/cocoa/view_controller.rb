@@ -2,6 +2,11 @@ require 'objc_ext'
 require 'irb_ext'
 require 'node'
 
+class CompletionView < NSTextView
+  def drawRect(rect)
+  end
+end
+
 class IRBViewController < NSViewController
   include IRB::Cocoa
 
@@ -36,10 +41,12 @@ class IRBViewController < NSViewController
     path = File.join(resourcePath, 'inspector.html')
     @webView.mainFrame.loadHTMLString(File.read(path), baseURL: NSURL.fileURLWithPath(resourcePath))
 
-    @completionView = NSTextView.alloc.initWithFrame(NSMakeRect(0, 0, 1, 1))
+    @completionView = CompletionView.alloc.initWithFrame(NSMakeRect(0, 0, 0, 0))
     @completionView.hidden = true
     @completionView.richText = false
     @completionView.delegate = self
+    @completionView.textContainer.widthTracksTextView = false
+    @completionView.textContainer.containerSize = NSMakeSize(1000000, 1)
     @webView.addSubview(@completionView)
 
     self.view = @webView
@@ -378,7 +385,8 @@ class IRBViewController < NSViewController
     scrollY = @webView.windowScriptObject.evaluateWebScript('window.scrollY')
     y -= scrollY
     # flip the y coord and move the text view a bit more up (15px)
-    frame = NSMakeRect(x, (@webView.frameSize.height - y) + 15, 1, 1)
+    frame = NSMakeRect(x, (@webView.frameSize.height - y) + 15, 0, 0)
+    p frame
     @completionView.frame = frame
 
     @completion.call(textView.string).map { |s| s[range.location..-1] }

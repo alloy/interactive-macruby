@@ -13,6 +13,15 @@ table
 	border-spacing: 0;
 }
 
+#inputTable
+{
+	height: 100%;
+}
+#bottomRow
+{
+	height: 100%;
+}
+
 td.value
 {
 	padding: 2px;
