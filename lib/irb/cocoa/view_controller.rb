@@ -43,6 +43,7 @@ class IRBViewController < NSViewController
 
     @completionView = NSPopUpButton.alloc.initWithFrame(NSMakeRect(0, 0, 0, 0), pullsDown: true)
     @completionView.hidden = true
+    @completionView.menu.delegate = self
     @webView.addSubview(@completionView)
 
     self.view = @webView
@@ -383,18 +384,43 @@ class IRBViewController < NSViewController
     frame = NSMakeRect(x, (@webView.frameSize.height - y) + 10, 0, 0)
     @completionView.frame = frame
 
+    completions = @completion.call(source)
     # get the index where the completion results should start.
-    # for example: ['[].clear']
-    #     becomes: ['clear']
-    start = source.length
-    start -= 1 unless source[-1, 1] == '.'
-    completions = @completion.call(source).map { |s| s[start..-1] }
+    if match = source.match(/\.(\w+)\s*\z/)
+      # for example: ['[].clear']
+      #     becomes: ['clear']
+      start = source.length - match[1].length
+    elsif source[-1, 1] == '.'
+      start = source.length
+    end
+    completions.map! { |s| s[start..-1] } if start
     # add an empty item, this is needed for a pull-down menu
     completions.unshift('')
 
+    # store the original input value
+    @inputFieldValueBeforeCompletion = @inputField.value
+    # store the place where we will insert the selected completion from menu:willHighlightItem:
+    if start
+      if source.split("\n").length > 1
+        start - @inputField.value.length
+      end
+    else
+      start = 0
+    end
+    @insertPointForCompletion = start
+
     @completionView.removeAllItems
     @completionView.addItemsWithTitles(completions)
+    @completionView.menu.minimumWidth = @webView.frameSize.width - x
     @completionView.performClick(self)
+  end
+
+  def menu(menu, willHighlightItem: item)
+    currentValueRemainder = @inputFieldValueBeforeCompletion[0...@insertPointForCompletion]
+    value = currentValueRemainder + item.title
+    @inputField.value = value
+    @inputField.selectionStart = @insertPointForCompletion
+    @inputField.selectionEnd = value.length
   end
 
   def control(control, textView: textView, doCommandBySelector: selector)
