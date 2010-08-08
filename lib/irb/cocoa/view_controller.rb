@@ -41,12 +41,8 @@ class IRBViewController < NSViewController
     path = File.join(resourcePath, 'inspector.html')
     @webView.mainFrame.loadHTMLString(File.read(path), baseURL: NSURL.fileURLWithPath(resourcePath))
 
-    @completionView = CompletionView.alloc.initWithFrame(NSMakeRect(0, 0, 0, 0))
+    @completionView = NSPopUpButton.alloc.initWithFrame(NSMakeRect(0, 0, 0, 0), pullsDown: true)
     @completionView.hidden = true
-    @completionView.richText = false
-    @completionView.delegate = self
-    @completionView.textContainer.widthTracksTextView = false
-    @completionView.textContainer.containerSize = NSMakeSize(1000000, 1)
     @webView.addSubview(@completionView)
 
     self.view = @webView
@@ -189,8 +185,7 @@ class IRBViewController < NSViewController
       if @inputField.value.empty?
         NSBeep()
       else
-        @completionView.string = source.to_s
-        @completionView.complete(self)
+        completionsForSource(source.to_s)
       end
     else
       setCodeBlockClassesWithSource(source)
@@ -372,7 +367,7 @@ class IRBViewController < NSViewController
 
   # delegate methods of the input cell
 
-  def textView(textView, completions: completions, forPartialWordRange: range, indexOfSelectedItem: item)
+  def completionsForSource(source)
     # get the position of the top-left corner of the bottom div from the top-left corner of the document
     x = y = 0
     node = @bottomDiv
@@ -385,18 +380,21 @@ class IRBViewController < NSViewController
     scrollY = @webView.windowScriptObject.evaluateWebScript('window.scrollY')
     y -= scrollY
     # flip the y coord and move the text view a bit more up (15px)
-    frame = NSMakeRect(x, (@webView.frameSize.height - y) + 15, 0, 0)
-    p frame
+    frame = NSMakeRect(x, (@webView.frameSize.height - y) + 10, 0, 0)
     @completionView.frame = frame
 
-    @completion.call(textView.string).map { |s| s[range.location..-1] }
-  end
+    # get the index where the completion results should start.
+    # for example: ['[].clear']
+    #     becomes: ['clear']
+    start = source.length
+    start -= 1 unless source[-1, 1] == '.'
+    completions = @completion.call(source).map { |s| s[start..-1] }
+    # add an empty item, this is needed for a pull-down menu
+    completions.unshift('')
 
-  def textViewDidChangeSelection(notification)
-    range = @completionView.selectedRanges.first.rangeValue
-    @inputField.value = @completionView.string
-    @inputField.selectionStart = range.location
-    @inputField.selectionEnd = range.location + range.length
+    @completionView.removeAllItems
+    @completionView.addItemsWithTitles(completions)
+    @completionView.performClick(self)
   end
 
   def control(control, textView: textView, doCommandBySelector: selector)
