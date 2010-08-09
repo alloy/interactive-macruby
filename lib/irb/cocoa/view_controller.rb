@@ -41,10 +41,14 @@ class IRBViewController < NSViewController
     path = File.join(resourcePath, 'inspector.html')
     @webView.mainFrame.loadHTMLString(File.read(path), baseURL: NSURL.fileURLWithPath(resourcePath))
 
-    @completionView = NSPopUpButton.alloc.initWithFrame(NSMakeRect(0, 0, 0, 0), pullsDown: true)
-    @completionView.hidden = true
-    @completionView.menu.delegate = self
-    @webView.addSubview(@completionView)
+    #@completionView = NSPopUpButton.alloc.initWithFrame(NSMakeRect(0, 0, 0, 0), pullsDown: true)
+    #@completionView.hidden = true
+    #@completionView.menu.delegate = self
+    #@webView.addSubview(@completionView)
+
+    @_inputField = NSTextField.alloc.initWithFrame(NSMakeRect(0, 0, 100, 20))
+    @_inputField.autoresizingMask = NSViewWidthSizable | NSViewMinYMargin
+    @webView.addSubview(@_inputField)
 
     self.view = @webView
   end
@@ -104,12 +108,24 @@ class IRBViewController < NSViewController
     @console = @document.getElementById('console')
     @console.send("addEventListener:::", 'click', self, false)
 
-    @inputField = @document.getElementById('inputField')
-    @inputField.send("addEventListener:::", "keypress", self, false)
+    # Wow, this seems so lame...
+    respondsToSelector('handleScrollEvent:')
+    @webView.windowScriptObject.setValue(self, forKey: 'IRBViewController')
+    @webView.windowScriptObject.evaluateWebScript(%{
+      window.onscroll = function(event) {
+        IRBViewController.handleScrollEvent(event);
+      }
+    })
+
+    #@webView.windowScriptObject.send('addEventListener:::', 'DOMMouseScroll', self, false)
+    #@document.body.callWebScriptMethod('addEventListener', withArguments: ['DOMMouseScroll', self, false])
+
+    #@inputField = @document.getElementById('inputField')
+    #@inputField.send("addEventListener:::", "keypress", self, false)
     @inputRow = @document.getElementById('inputRow')
     @inputLineNumber = @document.getElementById('inputLineNumber')
 
-    makeInputFieldPromptForInput
+    #makeInputFieldPromptForInput
   end
 
   def scrollWebViewToBottom
@@ -122,7 +138,33 @@ class IRBViewController < NSViewController
     @inputField.focus
   end
 
+  def self.webScriptNameForSelector(sel)
+    'handleScrollEvent' if sel == :'handleScrollEvent:'
+  end
+
+  def self.isSelectorExcludedFromWebScript(sel)
+    sel != :"handleScrollEvent:"
+  end
+
+  def handleScrollEvent(event)
+    x = y = 0
+    node = @bottomDiv
+    begin
+      x += node.offsetLeft
+      y += node.offsetTop
+    end while node = node.offsetParent
+
+    p @bottomDiv.parentNode.style.width
+    scrollY = @webView.windowScriptObject.evaluateWebScript('window.scrollY')
+    #p scrollY
+    y -= scrollY
+    p x, y
+
+    @_inputField.frame = NSMakeRect(x, @webView.frameSize.height - y - 10, @webView.frameSize.width - x - NSScroller.scrollerWidth, 20)
+  end
+
   def handleEvent(event)
+    p event
     element = event.target
     case element
     when DOMHTMLInputElement
