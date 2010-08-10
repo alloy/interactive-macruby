@@ -41,13 +41,9 @@ class IRBViewController < NSViewController
     path = File.join(resourcePath, 'inspector.html')
     @webView.mainFrame.loadHTMLString(File.read(path), baseURL: NSURL.fileURLWithPath(resourcePath))
 
-    #@completionView = NSPopUpButton.alloc.initWithFrame(NSMakeRect(0, 0, 0, 0), pullsDown: true)
-    #@completionView.hidden = true
-    #@completionView.menu.delegate = self
-    #@webView.addSubview(@completionView)
-
     @_inputField = NSTextField.alloc.initWithFrame(NSMakeRect(0, 0, 100, 20))
     @_inputField.autoresizingMask = NSViewWidthSizable | NSViewMinYMargin
+    @_inputField.bordered = false
     @webView.addSubview(@_inputField)
 
     self.view = @webView
@@ -96,6 +92,7 @@ class IRBViewController < NSViewController
     else
       @webView.enterFullScreenMode(NSScreen.mainScreen, withOptions: {})
     end
+    updateTextFieldFrame
     makeInputFieldPromptForInput(false)
   end
 
@@ -109,22 +106,16 @@ class IRBViewController < NSViewController
     @console.send("addEventListener:::", 'click', self, false)
 
     # Wow, this seems so lame...
-    respondsToSelector('handleScrollEvent:')
+    respondsToSelector('updateTextFieldFrame')
     @webView.windowScriptObject.setValue(self, forKey: 'IRBViewController')
-    @webView.windowScriptObject.evaluateWebScript(%{
-      window.onscroll = function(event) {
-        IRBViewController.handleScrollEvent(event);
-      }
-    })
-
-    #@webView.windowScriptObject.send('addEventListener:::', 'DOMMouseScroll', self, false)
-    #@document.body.callWebScriptMethod('addEventListener', withArguments: ['DOMMouseScroll', self, false])
+    @webView.windowScriptObject.evaluateWebScript('window.onscroll = function() { IRBViewController.updateTextFieldFrame(); }')
 
     #@inputField = @document.getElementById('inputField')
     #@inputField.send("addEventListener:::", "keypress", self, false)
     @inputRow = @document.getElementById('inputRow')
     @inputLineNumber = @document.getElementById('inputLineNumber')
 
+    updateTextFieldFrame
     #makeInputFieldPromptForInput
   end
 
@@ -133,34 +124,27 @@ class IRBViewController < NSViewController
   end
 
   def makeInputFieldPromptForInput(clear = true)
-    @inputField.value = '' if clear
+    @_inputField.stringValue = '' if clear
     @inputRow.style.display = 'table-row' # show! currently only sets to 'block'
-    @inputField.focus
-  end
-
-  def self.webScriptNameForSelector(sel)
-    'handleScrollEvent' if sel == :'handleScrollEvent:'
+    @_inputField.window.makeFirstResponder(@_inputField)
   end
 
   def self.isSelectorExcludedFromWebScript(sel)
-    sel != :"handleScrollEvent:"
+    sel != :"updateTextFieldFrame"
   end
 
-  def handleScrollEvent(event)
+  def updateTextFieldFrame
     x = y = 0
     node = @bottomDiv
     begin
       x += node.offsetLeft
       y += node.offsetTop
     end while node = node.offsetParent
-
-    p @bottomDiv.parentNode.style.width
-    scrollY = @webView.windowScriptObject.evaluateWebScript('window.scrollY')
-    #p scrollY
-    y -= scrollY
-    p x, y
+    y -= @webView.windowScriptObject.valueForKey('scrollY')
 
     @_inputField.frame = NSMakeRect(x, @webView.frameSize.height - y - 10, @webView.frameSize.width - x - NSScroller.scrollerWidth, 20)
+    @_inputField.needsDisplay = true
+    @_inputField.window.displayIfNeeded
   end
 
   def handleEvent(event)
