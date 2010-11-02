@@ -41,13 +41,24 @@ class IRBViewController < NSViewController
     path = File.join(resourcePath, 'inspector.html')
     @webView.mainFrame.loadHTMLString(File.read(path), baseURL: NSURL.fileURLWithPath(resourcePath))
 
-    @_inputField = NSTextField.alloc.initWithFrame(NSMakeRect(0, 0, 100, 20))
-    @_inputField.autoresizingMask = NSViewWidthSizable | NSViewMinYMargin
-    @_inputField.bordered = false
-    @webView.addSubview(@_inputField)
+    @inputField = NSTextField.alloc.initWithFrame(NSMakeRect(0, 0, 100, 20))
+    @inputField.autoresizingMask = NSViewWidthSizable | NSViewMinYMargin
+    @inputField.bordered = false
+    @inputField.delegate = self
+    @webView.addSubview(@inputField)
 
     self.view = @webView
   end
+
+  # for now all input field code
+
+  def makeInputFieldPromptForInput
+    #@inputField.stringValue = ''
+    #@inputField.enabled = true
+    view.window.makeFirstResponder(@inputField)
+  end
+
+
 
   # actions
 
@@ -116,17 +127,11 @@ class IRBViewController < NSViewController
     @inputLineNumber = @document.getElementById('inputLineNumber')
 
     updateTextFieldFrame
-    #makeInputFieldPromptForInput
+    makeInputFieldPromptForInput
   end
 
   def scrollWebViewToBottom
     @bottomDiv.scrollIntoView(true)
-  end
-
-  def makeInputFieldPromptForInput(clear = true)
-    @_inputField.stringValue = '' if clear
-    @inputRow.style.display = 'table-row' # show! currently only sets to 'block'
-    @_inputField.window.makeFirstResponder(@_inputField)
   end
 
   def self.isSelectorExcludedFromWebScript(sel)
@@ -142,9 +147,9 @@ class IRBViewController < NSViewController
     end while node = node.offsetParent
     y -= @webView.windowScriptObject.valueForKey('scrollY')
 
-    @_inputField.frame = NSMakeRect(x, @webView.frameSize.height - y - 10, @webView.frameSize.width - x - NSScroller.scrollerWidth, 20)
-    @_inputField.needsDisplay = true
-    @_inputField.window.displayIfNeeded
+    @inputField.frame = NSMakeRect(x, @webView.frameSize.height - y - 10, @webView.frameSize.width - x - NSScroller.scrollerWidth, 20)
+    @inputField.needsDisplay = true
+    @inputField.window.displayIfNeeded
   end
 
   def handleEvent(event)
