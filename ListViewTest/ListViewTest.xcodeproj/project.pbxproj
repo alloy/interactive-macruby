@@ -48,6 +48,7 @@
 		4DE3BE140D8651D900ECA448 /* MacRuby.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4DE3BE130D8651D900ECA448 /* MacRuby.framework */; };
 		51FD86DF12E2136500C9ED7C /* AppController.rb in Resources */ = {isa = PBXBuildFile; fileRef = 51FD86DE12E2136500C9ED7C /* AppController.rb */; };
 		51FD86E212E2138100C9ED7C /* ListView.rb in Resources */ = {isa = PBXBuildFile; fileRef = 51FD86E112E2138100C9ED7C /* ListView.rb */; };
+		51FD86EF12E216FC00C9ED7C /* Model.rb in Resources */ = {isa = PBXBuildFile; fileRef = 51FD86EE12E216FC00C9ED7C /* Model.rb */; };
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
@@ -69,8 +70,6 @@
 		089C165DFE840E0CC02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		13E42FB307B3F0F600E4EEF1 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = /System/Library/Frameworks/CoreData.framework; sourceTree = "<absolute>"; };
-		172754D5107598EA00D0347B /* stub_test.rb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.ruby; path = stub_test.rb; sourceTree = "<group>"; };
-		17D55CD81076A1A2008207BD /* run_suite.rb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.ruby; path = run_suite.rb; sourceTree = "<group>"; };
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
@@ -79,6 +78,7 @@
 		4DE3BE130D8651D900ECA448 /* MacRuby.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MacRuby.framework; path = /Library/Frameworks/MacRuby.framework; sourceTree = "<absolute>"; };
 		51FD86DE12E2136500C9ED7C /* AppController.rb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.ruby; path = AppController.rb; sourceTree = "<group>"; };
 		51FD86E112E2138100C9ED7C /* ListView.rb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.ruby; path = ListView.rb; sourceTree = "<group>"; };
+		51FD86EE12E216FC00C9ED7C /* Model.rb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.ruby; path = Model.rb; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* ListViewTest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ListViewTest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -124,15 +124,6 @@
 			name = "Other Frameworks";
 			sourceTree = "<group>";
 		};
-		172754AE1075979200D0347B /* Tests */ = {
-			isa = PBXGroup;
-			children = (
-				172754D5107598EA00D0347B /* stub_test.rb */,
-				17D55CD81076A1A2008207BD /* run_suite.rb */,
-			);
-			path = Tests;
-			sourceTree = "<group>";
-		};
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -144,7 +135,6 @@
 		29B97314FDCFA39411CA2CEA /* ListViewTest */ = {
 			isa = PBXGroup;
 			children = (
-				172754AE1075979200D0347B /* Tests */,
 				080E96DDFE201D6D7F000001 /* Classes */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
 				29B97317FDCFA39411CA2CEA /* Resources */,
@@ -166,6 +156,7 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				51FD86EE12E216FC00C9ED7C /* Model.rb */,
 				2BFA9DA510CDF852007972A1 /* MainMenu.xib */,
 				8D1107310486CEB800E47090 /* Info.plist */,
 				089C165CFE840E0CC02AAC07 /* InfoPlist.strings */,
@@ -241,6 +232,7 @@
 				2BFA9DA710CDF852007972A1 /* MainMenu.xib in Resources */,
 				51FD86DF12E2136500C9ED7C /* AppController.rb in Resources */,
 				51FD86E212E2138100C9ED7C /* ListView.rb in Resources */,
+				51FD86EF12E216FC00C9ED7C /* Model.rb in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
