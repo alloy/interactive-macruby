@@ -16,6 +16,7 @@ class ListView < NSView
     @representedObjects = array
     @representedObjects.each_with_index do |object, i|
       addSubview(ListViewItem.itemWithRepresentedObject("Item #{i}"))
+      #addSubview(ListViewItem.itemWithRepresentedObject(object))
     end
     needsLayout
   end
@@ -29,11 +30,15 @@ class ListView < NSView
     NSRectFill(rect)
   end
 
+  def setFrameSize(size)
+    super
+    needsLayout
+  end
+
   def needsLayout
     y = 0
     width = frameSize.width
     subviews.each do |listItem|
-      p y
       listItem.updateFrameWithWidth(width)
       listItem.frameOrigin = NSMakePoint(0, y)
       y += listItem.frameSize.height
@@ -60,20 +65,27 @@ class ListViewItem < NSView
       self.autoresizingMask = NSViewNotSizable
       self.autoresizesSubviews = false # We manage them in updateFrameWithWidth:top:
       
-      @view = NSTextField.alloc.initWithFrame(NSMakeRect(0, 0, 0, 0))
-      @view.stringValue = object
+      @view = NSTextField.new
+      @view.bezeled = false
+      @view.editable = false
+      @view.selectable = true
+      #@view.stringValue = @representedObject.label
+      @view.stringValue = @representedObject
       addSubview(@view)
 
       self
     end
   end
 
-  #def isFlipped
-    #true
-  #end
-
   def updateFrameWithWidth(width)
-    @view.frame = NSMakeRect(0, 0, width, 20)
-    self.frameSize = NSMakeSize(width, 20)
+    @view.frame = NSMakeRect(0, 0, width, 22)
+    self.frameSize = NSMakeSize(width, 22)
+  end
+end
+
+class ColoredView < NSView
+  def drawRect(rect)
+    NSColor.greenColor.setFill
+    NSRectFill(rect)
   end
 end
