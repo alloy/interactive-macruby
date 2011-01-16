@@ -4,9 +4,15 @@
 class ListView < NSView
   attr_accessor :representedObjects
 
+  def self.listViewWithRepresentedObjects(objects)
+    listView = new
+    listView.representedObjects = objects
+    listView
+  end
+
   # Only a root ListView should autosize the width when the superview changes width
   def viewDidMoveToSuperview
-    self.autoresizingMask = superview.is_a?(ListViewItem) ? NSViewNotSizable : NSViewWidthSizable
+    self.autoresizingMask = superview.is_a?(ListViewItem) ? NSViewNotSizable : (NSViewWidthSizable | NSViewMinYMargin)
     self.autoresizesSubviews = false
   end
 
@@ -20,6 +26,12 @@ class ListView < NSView
 
   def isFlipped
     true
+  end
+
+  def enclosingListView
+    if superview.is_a?(ListViewItem)
+      superview.listView
+    end
   end
 
   attr_writer :color
@@ -36,8 +48,19 @@ class ListView < NSView
     needsLayout unless @updatingFrameForNewLayout
   end
 
+  def updateFrameSizeWithWidth(width)
+    needsLayoutStartingAtListItemAtIndex(0, withWidth:width)
+  end
+
   def needsLayout
     needsLayoutStartingAtListItemAtIndex(0)
+  end
+
+  def needsLayoutAfterChildListViewToggledStartingAtListItem(listItem)
+    needsLayoutStartingAtListItem(listItem)
+    if listView = enclosingListView
+      listView.needsLayoutAfterChildListViewToggledStartingAtListItem(superview)
+    end
   end
 
   def needsLayoutStartingAtListItem(listItem)
@@ -45,10 +68,13 @@ class ListView < NSView
   end
 
   def needsLayoutStartingAtListItemAtIndex(listItemIndex)
-    return if subviews.empty?
+    needsLayoutStartingAtListItemAtIndex(listItemIndex, withWidth:frameSize.width)
+  end
+
+  def needsLayoutStartingAtListItemAtIndex(listItemIndex, withWidth:width)
+    return if !superview || subviews.empty?
 
     y = subviews[listItemIndex].frameOrigin.y
-    width = frameSize.width
 
     subviews[listItemIndex..-1].each do |listItem|
       listItem.updateFrameSizeWithWidth(width)
@@ -57,7 +83,8 @@ class ListView < NSView
     end
 
     frame = self.frame
-    frame.origin.y   -= y - frame.size.height
+    frame.origin.y   -= y - frame.size.height unless superview.is_a?(ListViewItem)
+    frame.size.width  = width
     frame.size.height = y
     @updatingFrameForNewLayout = true
     self.frame = frame
@@ -106,8 +133,8 @@ class ListViewItem < NSView
     @contentView.frame = frame
 
     if @childListView && @childListView.superview
-      frame.origin.y += frame.size.height
-      @childListView.frame = frame
+      @childListView.updateFrameSizeWithWidth(width - CONTENT_VIEW_X)
+      @childListView.frameOrigin = NSMakePoint(CONTENT_VIEW_X, totalFrameHeight)
       totalFrameHeight += @childListView.frameSize.height
     end
 
@@ -117,14 +144,14 @@ class ListViewItem < NSView
   def toggleChildrenListView
     if @disclosureTriangle.state == NSOnState
       unless @childListView
-        @childListView = ListView.new
+        @childListView = ListView.listViewWithRepresentedObjects(@representedObject.children)
         @childListView.color = NSColor.blueColor
       end
       addSubview(@childListView)
     else
       @childListView.removeFromSuperview
     end
-    listView.needsLayoutStartingAtListItem(self)
+    listView.needsLayoutAfterChildListViewToggledStartingAtListItem(self)
   end
 
   def addDisclosureTriangle

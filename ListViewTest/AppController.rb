@@ -13,7 +13,7 @@ class AppController
 
   def awakeFromNib
     models = TEXT.map { |t| Model.new(t) }
-    models[2] = CollapsibleModel.new("I can collapse!", [models[2]])
+    models[2] = CollapsibleModel.new("I can collapse!", [CollapsibleModel.new("So can I!", [CollapsibleModel.new("And I!", [models[2]])])])
     @listView.representedObjects = models
   end
 end
