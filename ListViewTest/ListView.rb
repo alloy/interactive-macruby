@@ -5,6 +5,8 @@
 # TODO: It might be better to create a NestedListView class which does not have 8 pixels of margin
 #       before its items and a regular ListView does add it. This way we don't need to check if the
 #       listView.nested? everytime when calculating the margins in ListViewItem#updateFrameSizeWithWidth
+#
+#       Actually, it's not even better for performance, but also because we need to draw a gray border on the left side!
 class ListView < NSView
   attr_accessor :representedObjects
 
@@ -33,7 +35,9 @@ class ListView < NSView
 
   def viewDidMoveToSuperview
     if superview.is_a?(NSClipView)
-      enclosingScrollView.hasHorizontalScroller = false
+      scrollView = enclosingScrollView
+      scrollView.backgroundColor = NSColor.whiteColor
+      scrollView.hasHorizontalScroller = false
     end
   end
 
@@ -57,15 +61,6 @@ class ListView < NSView
     if nested?
       superview.listView
     end
-  end
-
-  attr_writer :color
-  def color
-    @color ||= NSColor.redColor
-  end
-  def drawRect(rect)
-    color.setFill
-    NSRectFill(rect)
   end
 
   def setFrameSize(size)
@@ -184,10 +179,7 @@ class ListViewItem < NSView
 
   def toggleChildrenListView
     if @disclosureTriangle.state == NSOnState
-      unless @childListView
-        @childListView = ListView.nestedListViewWithRepresentedObjects(@representedObject.children)
-        @childListView.color = NSColor.blueColor
-      end
+      @childListView ||= ListView.nestedListViewWithRepresentedObjects(@representedObject.children)
       addSubview(@childListView)
     else
       @childListView.removeFromSuperview
