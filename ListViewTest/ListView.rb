@@ -1,19 +1,34 @@
 # 1. A ListItemView only deals with the layout of its inner views *and* updates its own height
 # 2. The ListView then manages the layout of list items based on their height
 # 3. Finally the ListView updates its own height based on the total length
+#
+# TODO: It might be better to create a NestedListView class which does not have 8 pixels of margin
+#       before its items and a regular ListView does add it. This way we don't need to check if the
+#       listView.nested? everytime when calculating the margins in ListViewItem#updateFrameSizeWithWidth
 class ListView < NSView
   attr_accessor :representedObjects
 
-  def self.listViewWithRepresentedObjects(objects)
-    listView = new
-    listView.representedObjects = objects
-    listView
+  def self.nestedListViewWithRepresentedObjects(objects)
+    alloc.initNestedListViewWithRepresentedObjects(objects)
   end
 
-  # Only a root ListView should autosize the width when the superview changes width
-  def viewDidMoveToSuperview
-    self.autoresizingMask = superview.is_a?(ListViewItem) ? NSViewNotSizable : (NSViewWidthSizable | NSViewMinYMargin)
-    self.autoresizesSubviews = false
+  def initWithFrame(frame)
+    if super
+      @nested                  = false
+      self.autoresizingMask    = NSViewWidthSizable | NSViewMinYMargin
+      self.autoresizesSubviews = false
+      self
+    end
+  end
+
+  def initNestedListViewWithRepresentedObjects(objects)
+    if init
+      @nested                  = true
+      self.autoresizingMask    = NSViewNotSizable
+      self.autoresizesSubviews = false
+      self.representedObjects  = objects
+      self
+    end
   end
 
   def representedObjects=(array)
@@ -28,8 +43,12 @@ class ListView < NSView
     true
   end
 
+  def nested?
+    @nested
+  end
+
   def enclosingListView
-    if superview.is_a?(ListViewItem)
+    if nested?
       superview.listView
     end
   end
@@ -83,7 +102,7 @@ class ListView < NSView
     end
 
     frame = self.frame
-    frame.origin.y   -= y - frame.size.height unless superview.is_a?(ListViewItem)
+    frame.origin.y   -= y - frame.size.height unless nested?
     frame.size.width  = width
     frame.size.height = y
     @updatingFrameForNewLayout = true
@@ -95,7 +114,8 @@ end
 class ListViewItem < NSView
   HORIZONTAL_MARGIN = 8
   DISCLOSURE_TRIANGLE_DIAMETER = 13
-  CONTENT_VIEW_X = DISCLOSURE_TRIANGLE_DIAMETER + (HORIZONTAL_MARGIN * 2)
+  NESTED_LIST_ITEM_CONTENT_VIEW_X = DISCLOSURE_TRIANGLE_DIAMETER + HORIZONTAL_MARGIN
+  ROOT_LIST_ITEM_CONTENT_VIEW_X = NESTED_LIST_ITEM_CONTENT_VIEW_X + HORIZONTAL_MARGIN
 
   attr_reader :representedObject
 
@@ -108,7 +128,6 @@ class ListViewItem < NSView
       @representedObject = object
       self.autoresizingMask = NSViewNotSizable
       self.autoresizesSubviews = false # We manage them in updateFrameWithWidth:
-      addDisclosureTriangle if object.respond_to?(:children)
       addTextView
       self
     end
@@ -120,21 +139,37 @@ class ListViewItem < NSView
     true
   end
 
+  # we add the disclosure triangle here, because otherwise we can't ask the listView yet if it's nested.
+  def viewDidMoveToSuperview
+    addDisclosureTriangle if @representedObject.respond_to?(:children)
+  end
+
+  def disclosureTriangleX
+    listView.nested? ? 0 : HORIZONTAL_MARGIN
+  end
+
+  def contentViewX
+    listView.nested? ? NESTED_LIST_ITEM_CONTENT_VIEW_X : ROOT_LIST_ITEM_CONTENT_VIEW_X
+  end
+
   def updateFrameSizeWithWidth(width)
-    frame = @contentView.stringValue.boundingRectWithSize(NSMakeSize(width - CONTENT_VIEW_X, 0),
+    contentViewX = self.contentViewX
+    contentWidth = width - contentViewX
+
+    frame = @contentView.stringValue.boundingRectWithSize(NSMakeSize(contentWidth, 0),
                                                 options:NSStringDrawingUsesLineFragmentOrigin,
                                              attributes:{ NSFontAttributeName => @contentView.font })
 
-    frame.origin.x = CONTENT_VIEW_X
-    frame.size.width = width - CONTENT_VIEW_X
+    frame.origin.x = contentViewX
+    frame.size.width = contentWidth
 
     totalFrameHeight = frame.size.height
 
     @contentView.frame = frame
 
     if @childListView && @childListView.superview
-      @childListView.updateFrameSizeWithWidth(width - CONTENT_VIEW_X)
-      @childListView.frameOrigin = NSMakePoint(CONTENT_VIEW_X, totalFrameHeight)
+      @childListView.updateFrameSizeWithWidth(contentWidth)
+      @childListView.frameOrigin = NSMakePoint(contentViewX, totalFrameHeight)
       totalFrameHeight += @childListView.frameSize.height
     end
 
@@ -144,7 +179,7 @@ class ListViewItem < NSView
   def toggleChildrenListView
     if @disclosureTriangle.state == NSOnState
       unless @childListView
-        @childListView = ListView.listViewWithRepresentedObjects(@representedObject.children)
+        @childListView = ListView.nestedListViewWithRepresentedObjects(@representedObject.children)
         @childListView.color = NSColor.blueColor
       end
       addSubview(@childListView)
@@ -155,7 +190,7 @@ class ListViewItem < NSView
   end
 
   def addDisclosureTriangle
-    frame                          = NSMakeRect(HORIZONTAL_MARGIN, 3, DISCLOSURE_TRIANGLE_DIAMETER, DISCLOSURE_TRIANGLE_DIAMETER)
+    frame                          = NSMakeRect(disclosureTriangleX, 3, DISCLOSURE_TRIANGLE_DIAMETER, DISCLOSURE_TRIANGLE_DIAMETER)
     @disclosureTriangle            = NSButton.alloc.initWithFrame(frame)
     @disclosureTriangle.bezelStyle = NSDisclosureBezelStyle
     @disclosureTriangle.buttonType = NSOnOffButton
