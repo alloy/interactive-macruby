@@ -196,7 +196,7 @@ class ListViewItem < NSView
   end
 
   def addDisclosureTriangle
-    frame                          = NSMakeRect(disclosureTriangleX, 3, DISCLOSURE_TRIANGLE_DIAMETER, DISCLOSURE_TRIANGLE_DIAMETER)
+    frame                          = NSMakeRect(disclosureTriangleX, 3, *([DISCLOSURE_TRIANGLE_DIAMETER] * 2))
     @disclosureTriangle            = NSButton.alloc.initWithFrame(frame)
     @disclosureTriangle.bezelStyle = NSDisclosureBezelStyle
     @disclosureTriangle.buttonType = NSOnOffButton
