@@ -8,6 +8,7 @@ class ListView < NSView
     if super
       #puts "ListView init with frame: #{frame.inspect}"
       self.autoresizingMask = NSViewWidthSizable
+      self.autoresizesSubviews = false
       self
     end
   end
@@ -15,8 +16,7 @@ class ListView < NSView
   def representedObjects=(array)
     @representedObjects = array
     @representedObjects.each_with_index do |object, i|
-      addSubview(ListViewItem.itemWithRepresentedObject("Item #{i}"))
-      #addSubview(ListViewItem.itemWithRepresentedObject(object))
+      addSubview(ListViewItem.itemWithRepresentedObject(object))
     end
     needsLayout
   end
@@ -32,23 +32,25 @@ class ListView < NSView
 
   def setFrameSize(size)
     super
-    needsLayout
+    needsLayout unless @updatingFrameForNewLayout
   end
 
   def needsLayout
     y = 0
     width = frameSize.width
+
     subviews.each do |listItem|
       listItem.updateFrameWithWidth(width)
       listItem.frameOrigin = NSMakePoint(0, y)
       y += listItem.frameSize.height
     end
 
-    lastListItem = subviews.last
-    self.bounds = NSMakeRect(0, 0, width, lastListItem.frameOrigin.y + lastListItem.frameSize.height)
-    #p lastListItem.frame
-    #p bounds
-    #p frame
+    frame = self.frame
+    frame.origin.y   -= y - frame.size.height
+    frame.size.height = y
+    @updatingFrameForNewLayout = true
+    self.frame = frame
+    @updatingFrameForNewLayout = false
   end
 end
 
@@ -66,11 +68,11 @@ class ListViewItem < NSView
       self.autoresizesSubviews = false # We manage them in updateFrameWithWidth:top:
       
       @view = NSTextField.new
+      @view.font = NSFont.systemFontOfSize(NSFont.systemFontSize)
       @view.bezeled = false
       @view.editable = false
       @view.selectable = true
-      #@view.stringValue = @representedObject.label
-      @view.stringValue = @representedObject
+      @view.stringValue = @representedObject.label
       addSubview(@view)
 
       self
@@ -78,8 +80,13 @@ class ListViewItem < NSView
   end
 
   def updateFrameWithWidth(width)
-    @view.frame = NSMakeRect(0, 0, width, 22)
-    self.frameSize = NSMakeSize(width, 22)
+    rect = @view.stringValue.boundingRectWithSize(NSMakeSize(width, 0),
+                                    options:NSStringDrawingUsesLineFragmentOrigin,
+                                 attributes:{ NSFontAttributeName => @view.font })
+
+    rect.size.width = width
+    @view.frame = rect
+    self.frameSize = NSMakeSize(width, rect.size.height)
   end
 end
 
