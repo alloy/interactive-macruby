@@ -57,7 +57,7 @@ end
 class ListViewItem < NSView
   MARGIN = 8
   DISCLOSURE_TRIANGLE_DIAMETER = 13
-  CONTENT_VIEW_X = DISCLOSURE_TRIANGLE_DIAMETER + (MARGIN * 2)
+  MIN_HEIGHT = CONTENT_VIEW_X = DISCLOSURE_TRIANGLE_DIAMETER + (MARGIN * 2)
 
   attr_reader :representedObject
 
@@ -87,6 +87,7 @@ class ListViewItem < NSView
 
     frame.origin.x = CONTENT_VIEW_X
     frame.size.width = width - CONTENT_VIEW_X
+    frame.size.height = MIN_HEIGHT if frame.size.height < MIN_HEIGHT
 
     @contentView.frame = frame
 
@@ -94,7 +95,7 @@ class ListViewItem < NSView
   end
 
   def toggleChildrenListView
-    if @disclosureTriangle.state = NSOnState
+    if @disclosureTriangle.state == NSOnState
       puts "SHOW!"
     else
       puts "HIDE!"
