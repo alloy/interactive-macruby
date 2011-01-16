@@ -25,10 +25,10 @@ class ListView < NSView
     true
   end
 
-  def drawRect(rect)
-    NSColor.redColor.setFill
-    NSRectFill(rect)
-  end
+  #def drawRect(rect)
+    #NSColor.redColor.setFill
+    #NSRectFill(rect)
+  #end
 
   def setFrameSize(size)
     super
@@ -40,7 +40,7 @@ class ListView < NSView
     width = frameSize.width
 
     subviews.each do |listItem|
-      listItem.updateFrameWithWidth(width)
+      listItem.updateFrameSizeWithWidth(width)
       listItem.frameOrigin = NSMakePoint(0, y)
       y += listItem.frameSize.height
     end
@@ -55,6 +55,10 @@ class ListView < NSView
 end
 
 class ListViewItem < NSView
+  MARGIN = 8
+  DISCLOSURE_TRIANGLE_DIAMETER = 13
+  CONTENT_VIEW_X = DISCLOSURE_TRIANGLE_DIAMETER + (MARGIN * 2)
+
   attr_reader :representedObject
 
   def self.itemWithRepresentedObject(object)
@@ -65,34 +69,56 @@ class ListViewItem < NSView
     if init
       @representedObject = object
       self.autoresizingMask = NSViewNotSizable
-      self.autoresizesSubviews = false # We manage them in updateFrameWithWidth:top:
-      
-      @view = NSTextField.new
-      @view.font = NSFont.systemFontOfSize(NSFont.systemFontSize)
-      @view.bezeled = false
-      @view.editable = false
-      @view.selectable = true
-      @view.stringValue = @representedObject.label
-      addSubview(@view)
-
+      self.autoresizesSubviews = false # We manage them in updateFrameWithWidth:
+      addDisclosureTriangle if object.respond_to?(:children)
+      addTextView
       self
     end
   end
 
-  def updateFrameWithWidth(width)
-    rect = @view.stringValue.boundingRectWithSize(NSMakeSize(width, 0),
-                                    options:NSStringDrawingUsesLineFragmentOrigin,
-                                 attributes:{ NSFontAttributeName => @view.font })
-
-    rect.size.width = width
-    @view.frame = rect
-    self.frameSize = NSMakeSize(width, rect.size.height)
+  def isFlipped
+    true
   end
-end
 
-class ColoredView < NSView
-  def drawRect(rect)
-    NSColor.greenColor.setFill
-    NSRectFill(rect)
+  def updateFrameSizeWithWidth(width)
+    frame = @contentView.stringValue.boundingRectWithSize(NSMakeSize(width - CONTENT_VIEW_X, 0),
+                                                options:NSStringDrawingUsesLineFragmentOrigin,
+                                             attributes:{ NSFontAttributeName => @contentView.font })
+
+    frame.origin.x = CONTENT_VIEW_X
+    frame.size.width = width - CONTENT_VIEW_X
+
+    @contentView.frame = frame
+
+    self.frameSize = NSMakeSize(width, frame.size.height)
+  end
+
+  def toggleChildrenListView
+    if @disclosureTriangle.state = NSOnState
+      puts "SHOW!"
+    else
+      puts "HIDE!"
+    end
+  end
+
+  def addDisclosureTriangle
+    frame                          = NSMakeRect(MARGIN, MARGIN, DISCLOSURE_TRIANGLE_DIAMETER, DISCLOSURE_TRIANGLE_DIAMETER)
+    @disclosureTriangle            = NSButton.alloc.initWithFrame(frame)
+    @disclosureTriangle.bezelStyle = NSDisclosureBezelStyle
+    @disclosureTriangle.buttonType = NSOnOffButton
+    @disclosureTriangle.title      = nil
+    @disclosureTriangle.target     = self
+    @disclosureTriangle.action     = :toggleChildrenListView
+    addSubview(@disclosureTriangle)
+  end
+
+  def addTextView
+    @contentView             = NSTextField.new
+    @contentView.font        = NSFont.systemFontOfSize(NSFont.systemFontSize)
+    @contentView.bezeled     = false
+    @contentView.editable    = false
+    @contentView.selectable  = true
+    @contentView.stringValue = @representedObject.label
+    addSubview(@contentView)
   end
 end
