@@ -55,9 +55,9 @@ class ListView < NSView
 end
 
 class ListViewItem < NSView
-  MARGIN = 8
+  HORIZONTAL_MARGIN = 8
   DISCLOSURE_TRIANGLE_DIAMETER = 13
-  MIN_HEIGHT = CONTENT_VIEW_X = DISCLOSURE_TRIANGLE_DIAMETER + (MARGIN * 2)
+  CONTENT_VIEW_X = DISCLOSURE_TRIANGLE_DIAMETER + (HORIZONTAL_MARGIN * 2)
 
   attr_reader :representedObject
 
@@ -87,7 +87,6 @@ class ListViewItem < NSView
 
     frame.origin.x = CONTENT_VIEW_X
     frame.size.width = width - CONTENT_VIEW_X
-    frame.size.height = MIN_HEIGHT if frame.size.height < MIN_HEIGHT
 
     @contentView.frame = frame
 
@@ -103,7 +102,7 @@ class ListViewItem < NSView
   end
 
   def addDisclosureTriangle
-    frame                          = NSMakeRect(MARGIN, MARGIN, DISCLOSURE_TRIANGLE_DIAMETER, DISCLOSURE_TRIANGLE_DIAMETER)
+    frame                          = NSMakeRect(HORIZONTAL_MARGIN, 3, DISCLOSURE_TRIANGLE_DIAMETER, DISCLOSURE_TRIANGLE_DIAMETER)
     @disclosureTriangle            = NSButton.alloc.initWithFrame(frame)
     @disclosureTriangle.bezelStyle = NSDisclosureBezelStyle
     @disclosureTriangle.buttonType = NSOnOffButton
