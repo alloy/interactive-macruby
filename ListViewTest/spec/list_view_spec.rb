@@ -23,6 +23,10 @@ describe "ListView" do
       @listView.autoresizesSubviews.should == false
     end
 
+    it "has a flipped coordinate" do
+      
+    end
+
     describe "its enclosing NSScrollView" do
       it "autohides the scrollers" do
         @scrollView.autohidesScrollers.should == true
