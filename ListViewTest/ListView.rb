@@ -1,116 +1,79 @@
-class ListViewLayoutManager < NSView
-  attr_reader :rootListView
-
-  def initWithFrame(frame)
-    puts "Init with frame: #{frame.inspect}"
-    if super
-      self.autoresizingMask = NSViewWidthSizable #| NSViewHeightSizable
-      #self.autoresizesSubviews = false # We manage them in setFrameSize
-
-      #@containerView = NSView.alloc.initWithFrame(frame)
-      #addSubview(@containerView)
-
-      @rootListView = ListView.alloc.initWithFrame(NSMakeRect(0, 0, frame.size.width, 0))
-      #@containerView.addSubview(@rootListView)
-      addSubview(@rootListView)
-
-      self
-    end
-  end
-
-  #def viewWillMoveToSuperview(superview)
-    #if superview.is_a?(NSClipView) && !superview.is_a?(ClipView)
-      #scrollView = superview.superview
-      #p scrollView.contentView.frame
-      #scrollView.contentView = ClipView.alloc.initWithFrame(NSMakeRect(1, 1, scrollView.contentView.frameSize.width, scrollView.contentView.frameSize.height))
-      #scrollView.documentView = self
-      ##scrollView.autohidesScrollers = true
-      ##scrollView.hasHorizontalScroller = false
-    #end
-  #end
-
-  def viewDidMoveToSuperview
-    superview.autoresizesSubviews = false if superview
-  end
-
-  # configure enclosing scroll view
-  #def viewDidMoveToSuperview
-    #if superview.is_a?(NSClipView)
-      #scrollView = enclosingScrollView
-      #p scrollView.contentView.frame
-      #scrollView.contentView = ClipView.alloc.initWithFrame(NSMakeRect(1, 1, scrollView.contentView.frameSize.width, scrollView.contentView.frameSize.height))
-      #scrollView.documentView = self
-      ##scrollView.autohidesScrollers = true
-      ##scrollView.hasHorizontalScroller = false
-    #end
-  #end
-
-  #def isFlipped
-    #true
-  #end
-
-  #def setFrame(frame)
-    #frame.origin = NSZeroPoint
-    #super(frame)
-  #end
-
-  def needsLayout
-    lastListItem = @rootListView.subviews.last
-    p lastListItem.frame
-    size = self.frameSize
-    #self.bounds = NSMakeRect(0, 0, size.width, lastListItem.frame.origin.y + lastListItem.frame.size.height)
-    #self.frameSize = NSMakeSize(size.width, lastListItem.frame.origin.y + lastListItem.frame.size.height)
-    #self.frame = NSMakeRect(0, 0, size.width, lastListItem.frame.origin.y + lastListItem.frame.size.height)
-    #@containerView.frame = NSMakeRect(0, 0, size.width, lastListItem.frame.origin.y + lastListItem.frame.size.height)
-    #@rootListView.bounds = NSMakeRect(0, 0, size.width, lastListItem.frame.origin.y + lastListItem.frame.size.height)
-    #self.needsDisplay = true
-  end
-
-  def drawRect(rect)
-    NSColor.redColor.setFill
-    NSRectFill(rect)
-  end
-end
-
-#class ContainerView < NSView
-  #def isFlipped
-    #true
-  #end
-
-  #def drawRect(rect)
-    #NSColor.redColor.setFill
-    #NSRectFill(rect)
-  #end
-#end
-
-# * A ListItemView only deals with the layout of its inner views *and* updates its own height
-# * The ListView then manages the layout of list items based on their height
+# 1. A ListItemView only deals with the layout of its inner views *and* updates its own height
+# 2. The ListView then manages the layout of list items based on their height
+# 3. Finally the ListView updates its own height based on the total length
 class ListView < NSView
   attr_accessor :representedObjects
 
   def initWithFrame(frame)
     if super
-      self.autoresizingMask = NSViewMaxYMargin
+      #puts "ListView init with frame: #{frame.inspect}"
+      self.autoresizingMask = NSViewWidthSizable
       self
     end
   end
 
   def representedObjects=(array)
     @representedObjects = array
-
-    size = self.frameSize
-
     @representedObjects.each_with_index do |object, i|
-      view = NSTextField.alloc.initWithFrame(NSMakeRect(0, i * 20, size.width, 20))
-      #view.stringValue = object.label
-      view.stringValue = "Item #{i}"
-      addSubview(view)
+      addSubview(ListViewItem.itemWithRepresentedObject("Item #{i}"))
     end
-
-    superview.needsLayout
+    needsLayout
   end
 
   def isFlipped
     true
+  end
+
+  def drawRect(rect)
+    NSColor.redColor.setFill
+    NSRectFill(rect)
+  end
+
+  def needsLayout
+    y = 0
+    width = frameSize.width
+    subviews.each do |listItem|
+      p y
+      listItem.updateFrameWithWidth(width)
+      listItem.frameOrigin = NSMakePoint(0, y)
+      y += listItem.frameSize.height
+    end
+
+    lastListItem = subviews.last
+    self.bounds = NSMakeRect(0, 0, width, lastListItem.frameOrigin.y + lastListItem.frameSize.height)
+    #p lastListItem.frame
+    #p bounds
+    #p frame
+  end
+end
+
+class ListViewItem < NSView
+  attr_reader :representedObject
+
+  def self.itemWithRepresentedObject(object)
+    alloc.initWithRepresentedObject(object)
+  end
+
+  def initWithRepresentedObject(object)
+    if init
+      @representedObject = object
+      self.autoresizingMask = NSViewNotSizable
+      self.autoresizesSubviews = false # We manage them in updateFrameWithWidth:top:
+      
+      @view = NSTextField.alloc.initWithFrame(NSMakeRect(0, 0, 0, 0))
+      @view.stringValue = object
+      addSubview(@view)
+
+      self
+    end
+  end
+
+  #def isFlipped
+    #true
+  #end
+
+  def updateFrameWithWidth(width)
+    @view.frame = NSMakeRect(0, 0, width, 20)
+    self.frameSize = NSMakeSize(width, 20)
   end
 end
