@@ -31,6 +31,12 @@ class ListView < NSView
     end
   end
 
+  def viewDidMoveToSuperview
+    if superview.is_a?(NSClipView)
+      enclosingScrollView.hasHorizontalScroller = false
+    end
+  end
+
   def representedObjects=(array)
     @representedObjects = array
     @representedObjects.each_with_index do |object, i|
