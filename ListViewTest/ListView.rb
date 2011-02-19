@@ -14,11 +14,14 @@ class ListView < NSView
     alloc.initNestedListViewWithRepresentedObjects(objects)
   end
 
+  # Only for the root list view!
   def initWithFrame(frame)
     if super
       @nested                  = false
       self.autoresizingMask    = NSViewWidthSizable | NSViewMinYMargin
       self.autoresizesSubviews = false
+      @inputField = ListViewInputField.new
+      addSubview(@inputField)
       self
     end
   end
@@ -44,7 +47,12 @@ class ListView < NSView
   def representedObjects=(array)
     @representedObjects = array
     @representedObjects.each_with_index do |object, i|
-      addSubview(ListViewItem.itemWithRepresentedObject(object))
+      listItem = ListViewItem.itemWithRepresentedObject(object)
+      if @inputField
+        addSubview(listItem, positioned:NSWindowBelow, relativeTo:@inputField)
+      else
+        addSubview(listItem)
+      end
     end
     needsLayout
   end
@@ -206,5 +214,33 @@ class ListViewItem < NSView
     @contentView.selectable  = true
     @contentView.stringValue = @representedObject.label
     addSubview(@contentView)
+  end
+end
+
+class ListViewInputField < NSView
+  def init
+    if super
+      self.autoresizingMask    = NSViewNotSizable
+      self.autoresizesSubviews = false # We manage them in updateFrameWithWidth:
+
+      @contentView             = NSTextField.new
+      @contentView.font        = NSFont.systemFontOfSize(NSFont.systemFontSize)
+      @contentView.bezeled     = false
+      @contentView.editable    = true
+      @contentView.selectable  = true
+
+      cell = @contentView.cell
+      cell.wraps = false
+      cell.scrollable = true
+
+      addSubview(@contentView)
+      self
+    end
+  end
+
+  def updateFrameSizeWithWidth(width)
+    contentViewX = ListViewItem::ROOT_LIST_ITEM_CONTENT_VIEW_X
+    @contentView.frame = NSMakeRect(contentViewX, 0, width - contentViewX, 22)
+    self.frameSize = NSMakeSize(width, 22)
   end
 end
