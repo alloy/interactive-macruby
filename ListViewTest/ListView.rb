@@ -7,28 +7,15 @@
 #       listView.nested? everytime when calculating the margins in ListViewItem#updateFrameSizeWithWidth
 #
 #       Actually, it's not even better for performance, but also because we need to draw a gray border on the left side!
-class ListView < NSView
+class NestedListView < NSView
   attr_accessor :representedObjects
 
   def self.nestedListViewWithRepresentedObjects(objects)
     alloc.initNestedListViewWithRepresentedObjects(objects)
   end
 
-  # Only for the root list view!
-  def initWithFrame(frame)
-    if super
-      @nested                  = false
-      self.autoresizingMask    = NSViewWidthSizable | NSViewMinYMargin
-      self.autoresizesSubviews = false
-      @inputField = ListViewInputField.new
-      addSubview(@inputField)
-      self
-    end
-  end
-
   def initNestedListViewWithRepresentedObjects(objects)
     if init
-      @nested                  = true
       self.autoresizingMask    = NSViewNotSizable
       self.autoresizesSubviews = false
       self.representedObjects  = objects
@@ -36,23 +23,12 @@ class ListView < NSView
     end
   end
 
-  def viewDidMoveToSuperview
-    if superview.is_a?(NSClipView)
-      scrollView = enclosingScrollView
-      scrollView.backgroundColor = NSColor.whiteColor
-      scrollView.hasHorizontalScroller = false
-    end
-  end
+  alias_method :addListItem, :addSubview
 
   def representedObjects=(array)
     @representedObjects = array
     @representedObjects.each_with_index do |object, i|
-      listItem = ListViewItem.itemWithRepresentedObject(object)
-      if @inputField
-        addSubview(listItem, positioned:NSWindowBelow, relativeTo:@inputField)
-      else
-        addSubview(listItem)
-      end
+      addListItem(ListViewItem.itemWithRepresentedObject(object))
     end
     needsLayout
   end
@@ -62,13 +38,11 @@ class ListView < NSView
   end
 
   def nested?
-    @nested
+    true
   end
 
   def enclosingListView
-    if nested?
-      superview.listView
-    end
+    superview.listView
   end
 
   def setFrameSize(size)
@@ -117,6 +91,37 @@ class ListView < NSView
     @updatingFrameForNewLayout = true
     self.frame = frame
     @updatingFrameForNewLayout = false
+  end
+end
+
+class ListView < NestedListView
+  def initWithFrame(frame)
+    if super
+      self.autoresizingMask    = NSViewWidthSizable | NSViewMinYMargin
+      self.autoresizesSubviews = false
+      @inputField = ListViewInputField.new
+      addSubview(@inputField)
+      self
+    end
+  end
+
+  def viewDidMoveToSuperview
+    if superview.is_a?(NSClipView)
+      scrollView = enclosingScrollView
+      scrollView.backgroundColor = NSColor.whiteColor
+      scrollView.hasHorizontalScroller = false
+    end
+  end
+
+  def nested?
+    false
+  end
+
+  def enclosingListView
+  end
+
+  def addListItem(item)
+    addSubview(item, positioned:NSWindowBelow, relativeTo:@inputField)
   end
 end
 
