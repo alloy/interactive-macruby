@@ -11,7 +11,7 @@ class NestedListView < NSView
   attr_accessor :representedObjects
 
   def self.nestedListViewWithRepresentedObjects(objects)
-    alloc.initNestedListViewWithRepresentedObjects(objects)
+    NestedListView.alloc.initNestedListViewWithRepresentedObjects(objects)
   end
 
   def initNestedListViewWithRepresentedObjects(objects)
