@@ -1,5 +1,5 @@
 class AppController
-  attr_accessor :listView
+  attr_accessor :scrollableListView
 
   TEXT = [
 "Enter at your peril, past the vaulted door. Impossible things will happen that the world's never seen before. In Dexter's laboratory lives the smartest boy you've ever seen, but Dee Dee blows his experiments to Smithereens! There's gloom and doom when things go boom in Dexter's lab!",
@@ -14,6 +14,6 @@ class AppController
   def awakeFromNib
     models = TEXT.map { |t| Model.new(t) }
     models[2] = CollapsibleModel.new("I can collapse!", [CollapsibleModel.new("So can I!", [CollapsibleModel.new("And I!", [models[2]])])])
-    @listView.representedObjects = models
+    @scrollableListView.listView.representedObjects = models
   end
 end

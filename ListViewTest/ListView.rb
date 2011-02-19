@@ -7,6 +7,7 @@
 #       listView.nested? everytime when calculating the margins in ListViewItem#updateFrameSizeWithWidth
 #
 #       Actually, it's not even better for performance, but also because we need to draw a gray border on the left side!
+
 class NestedListView < NSView
   attr_accessor :representedObjects
 
@@ -103,14 +104,6 @@ class ListView < NestedListView
     end
   end
 
-  def viewDidMoveToSuperview
-    if superview.is_a?(NSClipView)
-      scrollView = enclosingScrollView
-      scrollView.backgroundColor = NSColor.whiteColor
-      scrollView.hasHorizontalScroller = false
-    end
-  end
-
   def nested?
     false
   end
@@ -124,6 +117,33 @@ class ListView < NestedListView
 
   def needsLayoutAfterChildListViewToggledStartingAtListItem(listItem)
     needsLayoutStartingAtListItem(listItem)
+  end
+end
+
+class ScrollableListView < NSScrollView
+  class ClipViewWithGutter < NSClipView
+    def drawRect(_)
+      super
+      gutterRect = self.bounds
+      gutterRect.size.width = ListViewItem::ROOT_LIST_ITEM_CONTENT_VIEW_X
+      NSColor.lightGrayColor.setFill # TODO this is still too dark!
+      NSRectFill(gutterRect)
+    end
+  end
+
+  attr_reader :listView
+
+  def initWithCoder(coder)
+    if super
+      self.backgroundColor = NSColor.whiteColor
+      self.hasHorizontalScroller = false
+
+      clipFrame = contentView.frame
+      self.contentView = ClipViewWithGutter.alloc.initWithFrame(clipFrame)
+      self.documentView = @listView = ListView.alloc.initWithFrame(clipFrame)
+
+      self
+    end
   end
 end
 
