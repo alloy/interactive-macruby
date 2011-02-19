@@ -60,9 +60,7 @@ class NestedListView < NSView
 
   def needsLayoutAfterChildListViewToggledStartingAtListItem(listItem)
     needsLayoutStartingAtListItem(listItem)
-    if listView = enclosingListView
-      listView.needsLayoutAfterChildListViewToggledStartingAtListItem(superview)
-    end
+    enclosingListView.needsLayoutAfterChildListViewToggledStartingAtListItem(superview)
   end
 
   def needsLayoutStartingAtListItem(listItem)
@@ -122,6 +120,10 @@ class ListView < NestedListView
 
   def addListItem(item)
     addSubview(item, positioned:NSWindowBelow, relativeTo:@inputField)
+  end
+
+  def needsLayoutAfterChildListViewToggledStartingAtListItem(listItem)
+    needsLayoutStartingAtListItem(listItem)
   end
 end
 
