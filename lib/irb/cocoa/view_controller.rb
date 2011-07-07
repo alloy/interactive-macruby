@@ -129,7 +129,6 @@ class IRBViewController < NSViewController
     string = IRB.formatter.exception(exception)
     addConsoleNode(BasicNode.alloc.initWithValue(string))
     makeInputFieldPromptForInput
-    scrollWebViewToBottom
   end
 
   def terminate

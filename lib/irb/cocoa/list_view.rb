@@ -185,7 +185,7 @@ class ListViewItem < NSView
       @node = node
       self.autoresizingMask = NSViewNotSizable
       self.autoresizesSubviews = false # We manage them in updateFrameWithWidth:
-      addTextView
+      @node.value.is_a?(NSImage) ? addImageView : addTextView
       self
     end
   end
@@ -213,15 +213,19 @@ class ListViewItem < NSView
     contentViewX = self.contentViewX
     contentWidth = width - contentViewX
 
-    frame = @contentView.stringValue.boundingRectWithSize(NSMakeSize(contentWidth, 0),
-                                                options:NSStringDrawingUsesLineFragmentOrigin,
-                                             attributes:{ NSFontAttributeName => @contentView.font })
+    frame = nil
+    if @node.value.is_a?(NSImage)
+      frame = NSMakeRect(0, 0, 0, 0)
+      frame.size = @node.value.size
+    else
+      frame = @contentView.stringValue.boundingRectWithSize(NSMakeSize(contentWidth, 0),
+                                                    options:NSStringDrawingUsesLineFragmentOrigin,
+                                                 attributes:{ NSFontAttributeName => @contentView.font })
+      frame.size.width = contentWidth
+    end
 
     frame.origin.x = contentViewX
-    frame.size.width = contentWidth
-
     totalFrameHeight = frame.size.height
-
     @contentView.frame = frame
 
     if @childListView && @childListView.superview
@@ -261,6 +265,12 @@ class ListViewItem < NSView
     @contentView.editable    = false
     @contentView.selectable  = true
     @contentView.stringValue = @node.value
+    addSubview(@contentView)
+  end
+
+  def addImageView
+    @contentView = NSImageView.new
+    @contentView.image = @node.value
     addSubview(@contentView)
   end
 end
