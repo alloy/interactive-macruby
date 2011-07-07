@@ -80,13 +80,39 @@ module IRB
     end
 
     class ColoredFormatter < IRB::ColoredFormatter
-      def colorize_token(type, token)
-        token = token.htmlEscapeEntities if type == :on_comment || type == :on_tstring_content
-        if color = color(type)
-          "<span class='#{color}'>#{token}</span>"
-        else
-          token
+      # TODO add custom colors that are now just aliased
+      def color_scheme=(scheme)
+        super
+        @colors = @colors.inject({}) do |colors, (token_type, color)|
+          colors[token_type] = case color
+          when :white                 then NSColor.whiteColor
+          when :red, :light_red       then NSColor.redColor
+          when :green, :light_green   then NSColor.greenColor
+          when :brown                 then NSColor.brownColor
+          when :blue, :light_blue     then NSColor.blueColor
+          when :cyan, :light_cyan     then NSColor.cyanColor
+          when :purple, :light_purple then NSColor.purpleColor
+          when :light_gray            then NSColor.lightGrayColor
+          when :dark_gray             then NSColor.darkGrayColor
+          when :yellow                then NSColor.yellowColor
+          else
+            NSColor.blackColor
+          end
+          colors
         end
+      end
+
+      def colorize_token(type, token)
+        attrs = { NSForegroundColorAttributeName => color(type) || NSColor.blackColor }
+        NSAttributedString.alloc.initWithString(token, attributes:attrs)
+      end
+
+      def colorize(str)
+        result = NSMutableAttributedString.new
+        Ripper.lex(str).each do |_, type, token|
+          result.appendAttributedString(colorize_token(type, token))
+        end
+        result
       end
 
       def result(object)

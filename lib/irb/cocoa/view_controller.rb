@@ -101,8 +101,7 @@ class IRBViewController < NSViewController
 
     @sourceBuffer.buffer.each_with_index do |line, offset|
       addToHistory(line)
-      node = BasicNode.alloc.initWithPrefix((currentLineCount + offset).to_s,
-                                     value: line.htmlEscapeEntities)
+      node = BasicNode.alloc.initWithPrefix((currentLineCount + offset).to_s, value:line)
       addConsoleNode(node)
     end
 
@@ -122,7 +121,7 @@ class IRBViewController < NSViewController
   end
 
   def receivedOutput(output)
-    addConsoleNode(BasicNode.alloc.initWithValue(output.htmlEscapeEntities))
+    addConsoleNode(BasicNode.alloc.initWithValue(output))
   end
 
   def receivedException(exception)
