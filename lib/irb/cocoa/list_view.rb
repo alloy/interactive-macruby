@@ -88,6 +88,7 @@ class NestedListView < NSView
     end
 
     frame = self.frame
+    frame.origin.y   -= y - frame.size.height unless nested? # TODO or unless expanding
     frame.size.width  = width
     frame.size.height = y
     @updatingFrameForNewLayout = true
@@ -121,11 +122,20 @@ class ListView < NestedListView
   end
 
   def addListItem(item)
-    addSubview(item, positioned:NSWindowBelow, relativeTo:@inputField)
+    items = subviews
+    if items.size == 1
+      addSubview(item, positioned:NSWindowBelow, relativeTo:@inputField)
+    else
+      addSubview(item, positioned:NSWindowAbove, relativeTo:items[-2])
+    end
   end
 
   def needsLayoutAfterChildListViewToggledStartingAtListItem(listItem)
     needsLayoutStartingAtListItem(listItem)
+  end
+
+  def needsLayoutStartingAtListItemAtIndex(listItemIndex)
+    super(listItemIndex - 1) # offset for @inputFieldContainer
   end
 end
 
@@ -146,6 +156,7 @@ class ScrollableListView < NSScrollView
     if super
       self.backgroundColor = NSColor.whiteColor
       self.hasHorizontalScroller = false
+      self.hasVerticalScroller = true
 
       clipFrame = contentView.frame
       self.contentView = ClipViewWithGutter.alloc.initWithFrame(clipFrame)
@@ -187,7 +198,7 @@ class ListViewItem < NSView
 
   # we add the disclosure triangle here, because otherwise we can't ask the listView yet if it's nested.
   def viewDidMoveToSuperview
-    addDisclosureTriangle if @node.respond_to?(:children)
+    addDisclosureTriangle if @node.expandable?
   end
 
   def disclosureTriangleX

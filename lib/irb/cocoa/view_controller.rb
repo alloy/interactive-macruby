@@ -119,7 +119,6 @@ class IRBViewController < NSViewController
     addConsoleNode(ObjectNode.nodeForObject(result))
     @delegate.receivedResult(self)
     makeInputFieldPromptForInput
-    scrollWebViewToBottom
   end
 
   def receivedOutput(output)
