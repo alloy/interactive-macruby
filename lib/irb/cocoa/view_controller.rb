@@ -71,68 +71,6 @@ class IRBViewController < NSViewController
     makeInputFieldPromptForInput(false)
   end
 
-  # splitView delegate methods
-
-  def splitView(splitView, constrainSplitPosition: position, ofSubviewAt: index)
-    max = view.frameSize.height - INPUT_FIELD_HEIGHT - splitView.dividerThickness
-    position > max ? max : position
-  end
-
-  def splitView(splitView, resizeSubviewsWithOldSize: oldSize)
-    splitView.adjustSubviews
-
-    newSize = splitView.frameSize
-    webView, inputField = splitView.subviews
-
-    if oldSize.width == 0 || inputField.frameSize.height < INPUT_FIELD_HEIGHT
-      dividerThickness  = splitView.dividerThickness
-      webView.frameSize = NSMakeSize(newSize.width, newSize.height - (INPUT_FIELD_HEIGHT + dividerThickness))
-      inputField.frame  = NSMakeRect(0, newSize.height - INPUT_FIELD_HEIGHT, newSize.width, INPUT_FIELD_HEIGHT)
-    end
-  end
-
-  # WebView related methods
-
-  def webView(webView, didFinishLoadForFrame: frame)
-    @webViewDataSource = webView.mainFrame.dataSource
-    @document = webView.mainFrame.DOMDocument
-    @bottomDiv = @document.getElementById('bottom')
-    @console = @document.getElementById('console')
-    @console.send("addEventListener:::", 'click', self, false)
-    makeInputFieldPromptForInput
-  end
-
-  def scrollWebViewToBottom
-    @bottomDiv.scrollIntoView(true)
-  end
-
-  def handleEvent(event)
-    element = event.target
-    case element
-    when DOMHTMLTableCellElement
-      toggleExpandableNode(element) if element.hasClassName?('expandable')
-    when DOMHTMLAnchorElement
-      newContextWithObjectOfNode(element)
-    end
-  end
-
-  def toggleExpandableNode(prefix)
-    row   = prefix.parentNode
-    value = row.lastChild
-    if prefix.hasClassName?('not-expanded')
-      # if there is a table, show it, otherwise create and add one
-      if (table = value.lastChild) && table.is_a?(DOMHTMLTableElement)
-        table.show!
-      else
-        value.appendChild(childrenTableForNode(row['id'].to_i))
-      end
-      prefix.replaceClassName('not-expanded', 'expanded')
-    else
-      prefix.replaceClassName('expanded', 'not-expanded')
-      value.lastChild.hide!
-    end
-  end
-
   def newContextWithObjectOfNode(anchor)
     row = anchor.parentNode.parentNode
     object_id = row['id'].to_i
@@ -142,69 +80,18 @@ class IRBViewController < NSViewController
 
   # DOM element related methods
 
-  def addNode(node, toElement: element)
+  def addNode(node, toElement: listView)
     @expandableRowToNodeMap[node.id] = node if node.expandable?
-    element.appendChild(rowForNode(node))
+    listView.addNode(node)
   end
 
   def addConsoleNode(node)
-    addNode(node, toElement: @console)
-  end
-
-  def childrenTableForNode(id)
-    node = @expandableRowToNodeMap[id]
-    table = @document.createElement('table')
-    node.children.each { |childNode| addNode(childNode, toElement: table) }
-    table
-  end
-
-  def rowForNode(node)
-    row    = @document.createElement("tr")
-    prefix = @document.createElement("td")
-    value  = @document.createElement("td")
-
-    row['id']        = node.id
-    prefix.className = "prefix#{' expandable not-expanded' if node.expandable?}"
-    value.className  = "value"
-    prefix.innerHTML = node.prefix
-    if node.is_a?(NSImageNode)
-      value.appendChild(imageElementForNode(node))
-    else
-      value.innerHTML = node.value
-    end
-
-    row.appendChild(prefix)
-    row.appendChild(value)
-    row
-  end
-
-  # Adds the image data as a WebResource to the webview's data source and
-  # returns a IMG element, referencing the image.
-  def imageElementForNode(node)
-    image = node.object
-    url = "NSImage://#{image.object_id}.jpg"
-
-    @webViewDataSource.addSubresource(WebResource.alloc.initWithData(image.JFIFData(0.75),
-                                                                URL: NSURL.URLWithString(url),
-                                                           MIMEType: "image/jpeg",
-                                                   textEncodingName: nil,
-                                                          frameName: nil))
-
-    element = @document.createElement('img')
-    element['src'] = url
-    element
+    addNode(node, toElement: view.listView)
   end
 
   # input/output related methods
 
   def makeInputFieldPromptForInput(clear = true)
-    @inputField.stringValue = '' if clear
-
-    if @heightBeforeSizeToFit
-      @inputField.frameSize = NSMakeSize(@inputField.frameSize.width, @heightBeforeSizeToFit)
-      @heightBeforeSizeToFit = nil
-    end
-
     @inputField.enabled = true
     view.window.makeFirstResponder(@inputField)
   end

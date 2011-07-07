@@ -3,29 +3,39 @@
 # 3. Finally the ListView updates its own height based on the total length
 
 class NestedListView < NSView
-  attr_accessor :representedObjects
+  attr_accessor :nodes
 
-  def self.nestedListViewWithRepresentedObjects(objects)
-    NestedListView.alloc.initNestedListViewWithRepresentedObjects(objects)
+  def self.nestedListViewWithNodes(nodes)
+    NestedListView.alloc.initNestedListViewWithNodes(nodes)
   end
 
-  def initNestedListViewWithRepresentedObjects(objects)
+  def initNestedListViewWithNodes(nodes)
     if init
       self.autoresizingMask    = NSViewNotSizable
       self.autoresizesSubviews = false
-      self.representedObjects  = objects
+      self.nodes  = nodes
       self
     end
   end
 
   alias_method :addListItem, :addSubview
 
-  def representedObjects=(array)
-    @representedObjects = array
-    @representedObjects.each_with_index do |object, i|
-      addListItem(ListViewItem.itemWithRepresentedObject(object))
+  def nodes=(array)
+    @nodes = array.dup
+    @nodes.each_with_index do |node, i|
+      addListItem(ListViewItem.itemWithNode(node))
     end
     needsLayout
+  end
+
+  def nodes
+    @nodes ||= []
+  end
+
+  def addNode(node)
+    nodes << node
+    addListItem(ListViewItem.itemWithNode(node))
+    needsLayoutStartingAtListItemAtIndex(@nodes.size - 1)
   end
 
   def isFlipped
@@ -152,16 +162,16 @@ class ListViewItem < NSView
   NESTED_LIST_ITEM_CONTENT_VIEW_X = DISCLOSURE_TRIANGLE_DIAMETER + HORIZONTAL_MARGIN
   ROOT_LIST_ITEM_CONTENT_VIEW_X = NESTED_LIST_ITEM_CONTENT_VIEW_X + HORIZONTAL_MARGIN
 
-  attr_reader :representedObject
+  attr_reader :node
   attr_reader :contentView
 
-  def self.itemWithRepresentedObject(object)
-    alloc.initWithRepresentedObject(object)
+  def self.itemWithNode(node)
+    alloc.initWithNode(node)
   end
 
-  def initWithRepresentedObject(object)
+  def initWithNode(node)
     if init
-      @representedObject = object
+      @node = node
       self.autoresizingMask = NSViewNotSizable
       self.autoresizesSubviews = false # We manage them in updateFrameWithWidth:
       addTextView
@@ -177,7 +187,7 @@ class ListViewItem < NSView
 
   # we add the disclosure triangle here, because otherwise we can't ask the listView yet if it's nested.
   def viewDidMoveToSuperview
-    addDisclosureTriangle if @representedObject.respond_to?(:children)
+    addDisclosureTriangle if @node.respond_to?(:children)
   end
 
   def disclosureTriangleX
@@ -214,7 +224,7 @@ class ListViewItem < NSView
 
   def toggleChildrenListView
     if @disclosureTriangle.state == NSOnState
-      @childListView ||= ListView.nestedListViewWithRepresentedObjects(@representedObject.children)
+      @childListView ||= ListView.nestedListViewWithNodes(@node.children)
       addSubview(@childListView)
     else
       @childListView.removeFromSuperview
@@ -239,7 +249,7 @@ class ListViewItem < NSView
     @contentView.bezeled     = false
     @contentView.editable    = false
     @contentView.selectable  = true
-    @contentView.stringValue = @representedObject.label
+    @contentView.stringValue = @node.value
     addSubview(@contentView)
   end
 end
