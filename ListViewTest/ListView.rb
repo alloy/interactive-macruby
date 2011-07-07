@@ -84,7 +84,6 @@ class NestedListView < NSView
     end
 
     frame = self.frame
-    frame.origin.y   -= y - frame.size.height unless nested?
     frame.size.width  = width
     frame.size.height = y
     @updatingFrameForNewLayout = true
