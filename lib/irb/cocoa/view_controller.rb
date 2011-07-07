@@ -92,6 +92,7 @@ class IRBViewController < NSViewController
   # input/output related methods
 
   def makeInputFieldPromptForInput(clear = true)
+    @inputField.stringValue = '' if clear
     @inputField.enabled = true
     view.window.makeFirstResponder(@inputField)
   end

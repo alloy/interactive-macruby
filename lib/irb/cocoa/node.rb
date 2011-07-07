@@ -107,9 +107,10 @@ module IRB
         :instanceVariablesNode
       ]
 
-      def initWithValue(value)
-        super("<a href='#'>#{value}</a>")
-      end
+      # TODO use a button that opens the object in a new window!
+      #def initWithValue(value)
+      #  super("<a href='#'>#{value}</a>")
+      #end
 
       def initWithObject(object)
         if init
@@ -140,7 +141,7 @@ module IRB
 
       def descriptionNode
         if @showDescriptionNode
-          ListNode.alloc.initWithObject([objectDescription], value: "Description")
+          ListNode.alloc.initWithObject([objectDescription], value:"Description")
         end
       end
 
@@ -149,14 +150,13 @@ module IRB
       end
 
       def classNode
-        ModNode.alloc.initWithObject(@object.class,
-                        value: "Class: #{@object.class.name}")
+        ModNode.alloc.initWithObject(@object.class, value:"Class: #{@object.class.name}")
       end
 
       def publicMethodsNode
         methods = @object.methods(false)
         unless methods.empty?
-          ListNode.alloc.initWithObject(methods, value: "Public methods")
+          ListNode.alloc.initWithObject(methods, value:"Public methods")
         end
       end
 
