@@ -1,6 +1,7 @@
 require 'objc_ext'
 require 'irb_ext'
 require 'node'
+require 'list_view'
 
 class IRBViewController < NSViewController
   include IRB::Cocoa
@@ -24,34 +25,11 @@ class IRBViewController < NSViewController
   end
   
   def loadView
-    NSUserDefaults.standardUserDefaults.registerDefaults('WebKitDeveloperExtras' => true)
-
-    @sizeTextField = NSTextField.alloc.init
-    @sizeTextField.bordered = false
-    @sizeTextField.bezeled = false
-
-    @webView = WebView.alloc.init
-    @webView.frameLoadDelegate = self
-    @webView.setUIDelegate(self)
-
-    @inputField = NSTextField.alloc.init
-    @inputField.bordered = false
-    @inputField.font = NSFont.fontWithName('Menlo Regular', size: 11)
+    self.view = ScrollableListView.new
+    @inputField = view.listView.inputField
     @inputField.delegate = self
     @inputField.target = self
     @inputField.action = "inputFromInputField:"
-
-    @splitView = NSSplitView.alloc.init
-    @splitView.delegate = self
-    @splitView.vertical = false
-    @splitView.dividerStyle = NSSplitViewDividerStylePaneSplitter
-    @splitView.addSubview(@webView)
-    @splitView.addSubview(@inputField)
-    self.view = @splitView
-
-    resourcePath = File.dirname(__FILE__)
-    path = File.join(resourcePath, 'inspector.html')
-    @webView.mainFrame.loadHTMLString(File.read(path), baseURL: NSURL.fileURLWithPath(resourcePath))
   end
 
   # actions
