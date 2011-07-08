@@ -190,6 +190,12 @@ class ScrollableListView < NSScrollView
 end
 
 class ListViewItem < NSView
+  class TextField < NSTextField
+    def menu
+      enclosingScrollView.contentView.menu
+    end
+  end
+
   HORIZONTAL_MARGIN = 8
   DISCLOSURE_TRIANGLE_DIAMETER = 13
   NESTED_LIST_ITEM_CONTENT_VIEW_X = DISCLOSURE_TRIANGLE_DIAMETER + HORIZONTAL_MARGIN
@@ -221,6 +227,10 @@ class ListViewItem < NSView
   # we add the disclosure triangle here, because otherwise we can't ask the listView yet if it's nested.
   def viewDidMoveToSuperview
     addDisclosureTriangle if superview && @node.expandable?
+  end
+
+  def menu
+   enclosingScrollView.contentView.menu
   end
 
   def disclosureTriangleX
@@ -281,7 +291,7 @@ class ListViewItem < NSView
   end
 
   def addTextView
-    @contentView             = NSTextField.new
+    @contentView             = TextField.new
     @contentView.font        = ListView::FONT
     @contentView.bezeled     = false
     @contentView.editable    = false
