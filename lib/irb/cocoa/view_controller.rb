@@ -36,16 +36,19 @@ class IRBViewController < NSViewController
   # actions
 
   def setupContextualMenu
-    #fullScreenLabel = @splitView.isInFullScreenMode ? "Exit Full Screen" : "Enter Full Screen"
-    fullScreenLabel = "Enter Full Screen"
     menu = NSMenu.new
     menu.addItemWithTitle("Clear console", action: "clearConsole:", keyEquivalent: "")
     menu.addItem(NSMenuItem.separatorItem)
-    menu.addItemWithTitle(fullScreenLabel, action: "toggleFullScreenMode:", keyEquivalent: "")
+    @fullScreenMenuItem = menu.addItemWithTitle("", action: "toggleFullScreenMode:", keyEquivalent: "")
     menu.addItemWithTitle("Zoom In", action: "makeTextLarger:", keyEquivalent: "")
     menu.addItemWithTitle("Zoom Out", action: "makeTextSmaller:", keyEquivalent: "")
     menu.itemArray.each { |i| i.target = self }
     view.contentView.menu = menu
+  end
+
+  def validateUserInterfaceItem(item)
+    @fullScreenMenuItem.title = view.isInFullScreenMode ? "Exit Full Screen" : "Enter Full Screen"
+    true
   end
 
   def clearConsole(sender)
@@ -64,10 +67,10 @@ class IRBViewController < NSViewController
   end
 
   def toggleFullScreenMode(sender)
-    if @splitView.isInFullScreenMode
-      @splitView.exitFullScreenModeWithOptions({})
+    if view.isInFullScreenMode
+      view.exitFullScreenModeWithOptions({})
     else
-      @splitView.enterFullScreenMode(NSScreen.mainScreen, withOptions: {})
+      view.enterFullScreenMode(NSScreen.mainScreen, withOptions: {})
     end
     makeInputFieldPromptForInput(false)
   end
@@ -155,7 +158,7 @@ class IRBViewController < NSViewController
       end
 
     when :"cancelOperation:"
-      toggleFullScreenMode(nil) if @splitView.isInFullScreenMode
+      toggleFullScreenMode(nil) if view.isInFullScreenMode
 
     when :"insertTab:"
       textView.complete(self)
