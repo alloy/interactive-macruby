@@ -30,25 +30,26 @@ class IRBViewController < NSViewController
     @inputField.delegate = self
     @inputField.target = self
     @inputField.action = "inputFromInputField:"
+    setupContextualMenu
   end
 
   # actions
 
-  def webView(webView, contextMenuItemsForElement: element, defaultMenuItems: defaultItems)
-    fullScreenLabel = @splitView.isInFullScreenMode ? "Exit Full Screen" : "Enter Full Screen"
-    menuItems = [
-      NSMenuItem.alloc.initWithTitle("Clear console", action: "clearConsole:", keyEquivalent: ""),
-      NSMenuItem.separatorItem,
-      NSMenuItem.alloc.initWithTitle(fullScreenLabel, action: "toggleFullScreenMode:", keyEquivalent: ""),
-      NSMenuItem.alloc.initWithTitle("Zoom In", action: "makeTextLarger:", keyEquivalent: ""),
-      NSMenuItem.alloc.initWithTitle("Zoom Out", action: "makeTextSmaller:", keyEquivalent: ""),
-    ]
-    menuItems.each { |i| i.target = self }
-    menuItems
+  def setupContextualMenu
+    #fullScreenLabel = @splitView.isInFullScreenMode ? "Exit Full Screen" : "Enter Full Screen"
+    fullScreenLabel = "Enter Full Screen"
+    menu = NSMenu.new
+    menu.addItemWithTitle("Clear console", action: "clearConsole:", keyEquivalent: "")
+    menu.addItem(NSMenuItem.separatorItem)
+    menu.addItemWithTitle(fullScreenLabel, action: "toggleFullScreenMode:", keyEquivalent: "")
+    menu.addItemWithTitle("Zoom In", action: "makeTextLarger:", keyEquivalent: "")
+    menu.addItemWithTitle("Zoom Out", action: "makeTextSmaller:", keyEquivalent: "")
+    menu.itemArray.each { |i| i.target = self }
+    view.contentView.menu = menu
   end
 
   def clearConsole(sender)
-    @console.innerHTML = ''
+    view.listView.clear
     @expandableRowToNodeMap = {}
     @context.clear_buffer
     makeInputFieldPromptForInput(false)

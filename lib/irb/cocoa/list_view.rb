@@ -13,14 +13,16 @@ class NestedListView < NSView
     if init
       self.autoresizingMask    = NSViewNotSizable
       self.autoresizesSubviews = false
-      self.nodes  = nodes
+      self.nodes               = nodes
       self
     end
   end
 
   alias_method :addListItem, :addSubview
+  alias_method :listViewItems, :subviews
 
   def nodes=(array)
+    listViewItems.each(&:removeFromSuperview)
     @nodes = array.dup
     @nodes.each_with_index do |node, i|
       addListItem(ListViewItem.itemWithNode(node))
@@ -79,8 +81,18 @@ class NestedListView < NSView
   def needsLayoutStartingAtListItemAtIndex(listItemIndex, withWidth:width)
     return if !superview || subviews.empty?
 
-    y = subviews[listItemIndex].frameOrigin.y
+    subviews = self.subviews
 
+    # In case the first subview is not at the top, we need to reset them all
+    firstView = subviews.first
+    if firstView.frameOrigin.y != 0
+      listItemIndex = 0
+      frame = firstView.frame
+      frame.origin.y = 0
+      firstView.frame = frame
+    end
+
+    y = subviews[listItemIndex].frameOrigin.y
     subviews[listItemIndex..-1].each do |listItem|
       listItem.updateFrameSizeWithWidth(width)
       listItem.frameOrigin = NSMakePoint(0, y)
@@ -119,6 +131,16 @@ class ListView < NestedListView
   end
 
   def enclosingListView
+  end
+
+  def clear
+    self.nodes = []
+  end
+
+  def listViewItems
+    views = subviews.dup
+    views.delete(@inputFieldContainer)
+    views
   end
 
   def addListItem(item)
@@ -198,7 +220,7 @@ class ListViewItem < NSView
 
   # we add the disclosure triangle here, because otherwise we can't ask the listView yet if it's nested.
   def viewDidMoveToSuperview
-    addDisclosureTriangle if @node.expandable?
+    addDisclosureTriangle if superview && @node.expandable?
   end
 
   def disclosureTriangleX

@@ -52,9 +52,6 @@
 		517FC86911FB88E900B8B584 /* view_controller.rb in Resources */ = {isa = PBXBuildFile; fileRef = 517FC86711FB88E900B8B584 /* view_controller.rb */; };
 		517FCA2D11FC5EBE00B8B584 /* irb_ext.rb in Resources */ = {isa = PBXBuildFile; fileRef = 517FCA2C11FC5EBE00B8B584 /* irb_ext.rb */; };
 		51B455CB1203AC4700BA7EB4 /* node.rb in Resources */ = {isa = PBXBuildFile; fileRef = 51B455CA1203AC4700BA7EB4 /* node.rb */; };
-		51B456F412058AF700BA7EB4 /* inspector.css in Resources */ = {isa = PBXBuildFile; fileRef = 51B456F212058AF700BA7EB4 /* inspector.css */; };
-		51B456F512058AF700BA7EB4 /* inspector.html in Resources */ = {isa = PBXBuildFile; fileRef = 51B456F312058AF700BA7EB4 /* inspector.html */; };
-		51B4573C12059C4500BA7EB4 /* images in Resources */ = {isa = PBXBuildFile; fileRef = 51B4573812059C4500BA7EB4 /* images */; };
 		51B4591112074B6D00BA7EB4 /* objc_ext.rb in Resources */ = {isa = PBXBuildFile; fileRef = 51B4591012074B6D00BA7EB4 /* objc_ext.rb */; };
 		51B459A61208D65000BA7EB4 /* HotConsole.icns in Resources */ = {isa = PBXBuildFile; fileRef = 51B459A51208D65000BA7EB4 /* HotConsole.icns */; };
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
@@ -90,9 +87,6 @@
 		517FC86711FB88E900B8B584 /* view_controller.rb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.ruby; name = view_controller.rb; path = lib/irb/cocoa/view_controller.rb; sourceTree = "<group>"; };
 		517FCA2C11FC5EBE00B8B584 /* irb_ext.rb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.ruby; name = irb_ext.rb; path = lib/irb/cocoa/irb_ext.rb; sourceTree = "<group>"; };
 		51B455CA1203AC4700BA7EB4 /* node.rb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.ruby; name = node.rb; path = lib/irb/cocoa/node.rb; sourceTree = "<group>"; };
-		51B456F212058AF700BA7EB4 /* inspector.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; name = inspector.css; path = lib/irb/cocoa/inspector.css; sourceTree = "<group>"; };
-		51B456F312058AF700BA7EB4 /* inspector.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; name = inspector.html; path = lib/irb/cocoa/inspector.html; sourceTree = "<group>"; };
-		51B4573812059C4500BA7EB4 /* images */ = {isa = PBXFileReference; lastKnownFileType = folder; name = images; path = lib/irb/cocoa/images; sourceTree = "<group>"; };
 		51B4591012074B6D00BA7EB4 /* objc_ext.rb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.ruby; name = objc_ext.rb; path = lib/irb/cocoa/objc_ext.rb; sourceTree = "<group>"; };
 		51B459A51208D65000BA7EB4 /* HotConsole.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = HotConsole.icns; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -178,9 +172,6 @@
 			isa = PBXGroup;
 			children = (
 				51B459A51208D65000BA7EB4 /* HotConsole.icns */,
-				51B456F212058AF700BA7EB4 /* inspector.css */,
-				51B4573812059C4500BA7EB4 /* images */,
-				51B456F312058AF700BA7EB4 /* inspector.html */,
 				2BFA9DA510CDF852007972A1 /* MainMenu.xib */,
 				8D1107310486CEB800E47090 /* Info.plist */,
 				089C165CFE840E0CC02AAC07 /* InfoPlist.strings */,
@@ -259,9 +250,6 @@
 				517FC86911FB88E900B8B584 /* view_controller.rb in Resources */,
 				517FCA2D11FC5EBE00B8B584 /* irb_ext.rb in Resources */,
 				51B455CB1203AC4700BA7EB4 /* node.rb in Resources */,
-				51B456F412058AF700BA7EB4 /* inspector.css in Resources */,
-				51B456F512058AF700BA7EB4 /* inspector.html in Resources */,
-				51B4573C12059C4500BA7EB4 /* images in Resources */,
 				51B4591112074B6D00BA7EB4 /* objc_ext.rb in Resources */,
 				51B459A61208D65000BA7EB4 /* HotConsole.icns in Resources */,
 				516D336E13C6538E000B5B89 /* list_view.rb in Resources */,
