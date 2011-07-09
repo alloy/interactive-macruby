@@ -37,17 +37,18 @@ class IRBViewController < NSViewController
 
   def setupContextualMenu
     menu = NSMenu.new
-    menu.addItemWithTitle("Clear console", action: "clearConsole:", keyEquivalent: "")
+    menu.addItemWithTitle("Clear console", action: "clearConsole:", keyEquivalent: "").target = self
     menu.addItem(NSMenuItem.separatorItem)
-    @fullScreenMenuItem = menu.addItemWithTitle("", action: "toggleFullScreenMode:", keyEquivalent: "")
-    menu.addItemWithTitle("Zoom In", action: "makeTextLarger:", keyEquivalent: "")
-    menu.addItemWithTitle("Zoom Out", action: "makeTextSmaller:", keyEquivalent: "")
-    menu.itemArray.each { |i| i.target = self }
+    menu.addItemWithTitle("", action: "toggleFullScreenMode:", keyEquivalent: "").target = self
+    menu.addItemWithTitle("Zoom In", action: "makeTextLarger:", keyEquivalent: "").target = view.listView
+    menu.addItemWithTitle("Zoom Out", action: "makeTextSmaller:", keyEquivalent: "").target = view.listView
     view.contentView.menu = menu
   end
 
   def validateUserInterfaceItem(item)
-    @fullScreenMenuItem.title = view.isInFullScreenMode ? "Exit Full Screen" : "Enter Full Screen"
+    if item.action == :'toggleFullScreenMode:'
+      item.title = view.isInFullScreenMode ? "Exit Full Screen" : "Enter Full Screen"
+    end
     true
   end
 
@@ -56,14 +57,6 @@ class IRBViewController < NSViewController
     @expandableRowToNodeMap = {}
     @context.clear_buffer
     makeInputFieldPromptForInput(false)
-  end
-
-  def makeTextLarger(sender)
-    view.listView.makeTextLarger(sender)
-  end
-
-  def makeTextSmaller(sender)
-    view.listView.makeTextSmaller(sender)
   end
 
   def toggleFullScreenMode(sender)

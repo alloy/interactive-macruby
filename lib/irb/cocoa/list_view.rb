@@ -153,7 +153,19 @@ class ListView < NestedListView
   end
 
   def makeTextSmaller(sender)
-    self.font = NSFont.fontWithName(@font.fontName, size:@font.pointSize / 2)
+    if canMakeTextSmaller?
+      self.font = NSFont.fontWithName(@font.fontName, size:@font.pointSize / 2)
+    else
+      NSBeep()
+    end
+  end
+
+  def validateUserInterfaceItem(item)
+    item.action == :'makeTextSmaller:' ? canMakeTextSmaller? : true
+  end
+
+  def canMakeTextSmaller?
+    (@font.pointSize / 2) > 10
   end
 
   def listViewItems

@@ -35,16 +35,10 @@ class IRBWindowController < NSWindowController
     window.title = viewController.context.object.inspect
   end
 
+  # TODO properly set the view controller as first responder so we don't need to delegate any longer
+
   def clearConsole(sender)
     @viewController.clearConsole(sender)
-  end
-
-  def makeTextLarger(sender)
-    @viewController.makeTextLarger(sender)
-  end
-
-  def makeTextSmaller(sender)
-    @viewController.makeTextSmaller(sender)
   end
 
   def cancelOperation(sender)
