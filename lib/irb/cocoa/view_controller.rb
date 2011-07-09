@@ -59,11 +59,11 @@ class IRBViewController < NSViewController
   end
 
   def makeTextLarger(sender)
-    @webView.makeTextLarger(sender)
+    view.listView.makeTextLarger(sender)
   end
 
   def makeTextSmaller(sender)
-    @webView.makeTextSmaller(sender)
+    view.listView.makeTextSmaller(sender)
   end
 
   def toggleFullScreenMode(sender)

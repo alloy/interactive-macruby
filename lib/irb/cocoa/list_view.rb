@@ -52,6 +52,10 @@ class NestedListView < NSView
     superview.listView
   end
 
+  def font
+    enclosingListView.font
+  end
+
   def setFrameSize(size)
     super
     needsLayout unless @updatingFrameForNewLayout
@@ -110,8 +114,6 @@ class NestedListView < NSView
 end
 
 class ListView < NestedListView
-  FONT = NSFont.fontWithName('Menlo Regular', size: 11)
-
   def initWithFrame(frame)
     if super
       self.autoresizingMask    = NSViewWidthSizable | NSViewMinYMargin
@@ -137,6 +139,23 @@ class ListView < NestedListView
     self.nodes = []
   end
 
+  def font
+    @font ||= NSFont.fontWithName('Menlo Regular', size:12)
+  end
+
+  def font=(font)
+    @font = font
+    needsLayout
+  end
+
+  def makeTextLarger(sender)
+    self.font = NSFont.fontWithName(@font.fontName, size:@font.pointSize * 2)
+  end
+
+  def makeTextSmaller(sender)
+    self.font = NSFont.fontWithName(@font.fontName, size:@font.pointSize / 2)
+  end
+
   def listViewItems
     views = subviews.dup
     views.delete(@inputFieldContainer)
@@ -157,7 +176,7 @@ class ListView < NestedListView
   end
 
   def needsLayoutStartingAtListItemAtIndex(listItemIndex)
-    super(listItemIndex - 1) # offset for @inputFieldContainer
+    super(listItemIndex == 0 ? 0 : listItemIndex - 1) # offset for @inputFieldContainer
   end
 end
 
@@ -250,9 +269,11 @@ class ListViewItem < NSView
       frame = NSMakeRect(0, 0, 0, 0)
       frame.size = @node.value.size
     else
+      # always update the font, it might have changed in the meantime
+      @contentView.font = font = listView.font
       frame = @contentView.stringValue.boundingRectWithSize(NSMakeSize(contentWidth, 0),
                                                     options:NSStringDrawingUsesLineFragmentOrigin,
-                                                 attributes:{ NSFontAttributeName => @contentView.font })
+                                                 attributes:{ NSFontAttributeName => font })
       frame.size.width = contentWidth
     end
 
@@ -292,7 +313,6 @@ class ListViewItem < NSView
 
   def addTextView
     @contentView             = TextField.new
-    @contentView.font        = ListView::FONT
     @contentView.bezeled     = false
     @contentView.editable    = false
     @contentView.selectable  = true
@@ -316,7 +336,6 @@ class ListViewInputField < NSView
       self.autoresizesSubviews = false # We manage them in updateFrameWithWidth:
 
       @contentView             = NSTextField.new
-      @contentView.font        = ListView::FONT
       @contentView.bezeled     = false
       @contentView.editable    = true
       @contentView.selectable  = true
@@ -331,6 +350,9 @@ class ListViewInputField < NSView
   end
 
   def updateFrameSizeWithWidth(width)
+    # always update the font, it might have changed in the meantime
+    @contentView.font = superview.font
+
     contentViewX = ListViewItem::ROOT_LIST_ITEM_CONTENT_VIEW_X
     @contentView.frame = NSMakeRect(contentViewX, 0, width - contentViewX, 22)
     self.frameSize = NSMakeSize(width, 22)
