@@ -37,11 +37,11 @@ class IRBViewController < NSViewController
 
   def setupContextualMenu
     menu = NSMenu.new
-    menu.addItemWithTitle("Clear console", action: "clearConsole:", keyEquivalent: "").target = self
+    menu.addItemWithTitle("Clear console", action:"clearConsole:",         keyEquivalent: "k").target = self
     menu.addItem(NSMenuItem.separatorItem)
-    menu.addItemWithTitle("", action: "toggleFullScreenMode:", keyEquivalent: "").target = self
-    menu.addItemWithTitle("Zoom In", action: "makeTextLarger:", keyEquivalent: "").target = view.listView
-    menu.addItemWithTitle("Zoom Out", action: "makeTextSmaller:", keyEquivalent: "").target = view.listView
+    menu.addItemWithTitle("",              action:"toggleFullScreenMode:", keyEquivalent: "F").target = self
+    menu.addItemWithTitle("Zoom In",       action:"makeTextLarger:",       keyEquivalent: "+").target = view.listView
+    menu.addItemWithTitle("Zoom Out",      action:"makeTextSmaller:",      keyEquivalent: "-").target = view.listView
     view.contentView.menu = menu
   end
 
