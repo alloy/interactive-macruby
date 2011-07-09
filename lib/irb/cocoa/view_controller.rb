@@ -68,22 +68,20 @@ class IRBViewController < NSViewController
     makeInputFieldPromptForInput(false)
   end
 
-  def newContextWithObjectOfNode(anchor)
-    row = anchor.parentNode.parentNode
-    object_id = row['id'].to_i
-    object = @expandableRowToNodeMap[object_id].object
-    irb(object)
-  end
+  #def newContextWithObjectOfNode(anchor)
+    #row = anchor.parentNode.parentNode
+    #object_id = row['id'].to_i
+    #object = @expandableRowToNodeMap[object_id].object
+    #irb(object)
+  #end
 
-  # DOM element related methods
-
-  def addNode(node, toElement: listView)
+  def addNode(node, toListView:listView)
     @expandableRowToNodeMap[node.id] = node if node.expandable?
     listView.addNode(node)
   end
 
   def addConsoleNode(node)
-    addNode(node, toElement: view.listView)
+    addNode(node, toListView:view.listView)
   end
 
   # input/output related methods
@@ -94,17 +92,20 @@ class IRBViewController < NSViewController
     view.window.makeFirstResponder(@inputField)
   end
 
-  def processSourceBuffer!
-    currentLineCount = @context.line
+  def processInput(line)
+    @sourceBuffer << line
+    addToHistory(line)
 
-    @sourceBuffer.buffer.each_with_index do |line, offset|
-      addToHistory(line)
-      node = BasicNode.alloc.initWithPrefix((currentLineCount + offset).to_s, value:line)
-      addConsoleNode(node)
+    node = BasicNode.alloc.initWithPrefix((@context.line + 1).to_s, value:line)
+    addConsoleNode(node)
+    makeInputFieldPromptForInput(true)
+
+    if @sourceBuffer.code_block?
+      @inputField.enabled = false
+      @thread[:input] = @sourceBuffer.buffer
+      @thread.run
+      @sourceBuffer = IRB::Source.new
     end
-
-    @thread[:input] = @sourceBuffer.buffer
-    @thread.run
   end
 
   def addToHistory(line)
@@ -134,7 +135,7 @@ class IRBViewController < NSViewController
 
   # delegate methods of the input cell
 
-  def control(control, textView: textView, completions: completions, forPartialWordRange: range, indexOfSelectedItem: item)
+  def control(control, textView:textView, completions:completions, forPartialWordRange:range, indexOfSelectedItem:item)
     @completion.call(textView.string).map { |s| s[range.location..-1] }
   end
   
@@ -142,20 +143,11 @@ class IRBViewController < NSViewController
     #p selector
     case selector
     when :"insertNewline:"
-      @sourceBuffer = IRB::Source.new(textView.string.split("\n"))
-      if @sourceBuffer.code_block?
-        processSourceBuffer!
-      else
-        textView.string = "#{textView.string}\n"
-        sizeInputFieldToFit!
-      end
-
+      processInput(textView.string)
     when :"cancelOperation:"
       toggleFullScreenMode(nil) if view.isInFullScreenMode
-
     when :"insertTab:"
       textView.complete(self)
-
     when :"moveUp:"
       lineCount = textView.string.strip.split("\n").size
       if lineCount > 1
@@ -168,7 +160,6 @@ class IRBViewController < NSViewController
           NSBeep()
         end
       end
-
     when :"moveDown:"
       lineCount = textView.string.strip.split("\n").size
       if lineCount > 1
@@ -188,26 +179,13 @@ class IRBViewController < NSViewController
     true
   end
 
-  def sizeInputFieldToFit!
-    currentSize = @inputField.frameSize
-    @sizeTextField.attributedStringValue = @inputField.attributedStringValue
-    height = @sizeTextField.cell.cellSizeForBounds(NSMakeRect(0, 0, currentSize.width, 1000000)).height
-    unless height < currentSize.height
-      @heightBeforeSizeToFit ||= currentSize.height
-      p @heightBeforeSizeToFit
-      # the calculation that comes out isn't perfect imo,
-      # so add 2 more points for each line in the source buffer
-      height += (2 * @sourceBuffer.buffer.size) + 1
-      @inputField.frameSize = NSMakeSize(@inputField.frameSize.width, height)
-    end
-  end
-
   private
 
   def setupIRBForObject(object, binding: binding)
-    @context = IRB::Cocoa::Context.new(self, object, binding)
-    @output = IRB::Cocoa::Output.new(self)
-    @completion = IRB::Completion.new(@context)
+    @context      = IRB::Cocoa::Context.new(self, object, binding)
+    @output       = IRB::Cocoa::Output.new(self)
+    @completion   = IRB::Completion.new(@context)
+    @sourceBuffer = IRB::Source.new
     
     @thread = Thread.new(self, @context) do |controller, context|
       IRB::Driver.current = controller
