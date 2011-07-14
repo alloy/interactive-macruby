@@ -96,7 +96,7 @@ class IRBViewController < NSViewController
     @sourceBuffer << line
     addToHistory(line)
 
-    node = BasicNode.alloc.initWithPrefix((@context.line + 1).to_s, value:line)
+    node = BasicNode.alloc.initWithPrefix((@context.line).to_s, value:line)
     addConsoleNode(node)
     makeInputFieldPromptForInput(true)
 

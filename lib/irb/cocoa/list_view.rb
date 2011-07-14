@@ -190,11 +190,13 @@ end
 
 class ScrollableListView < NSScrollView
   class ClipViewWithGutter < NSClipView
+    GUTTER_COLOR = NSColor.colorWithCalibratedWhite(0.9, alpha:1)
+
     def drawRect(_)
       super
       gutterRect = self.bounds
       gutterRect.size.width = ListViewItem::ROOT_LIST_ITEM_CONTENT_VIEW_X
-      NSColor.lightGrayColor.setFill # TODO this is still too dark!
+      GUTTER_COLOR.setFill # TODO this is still too dark!
       NSRectFill(gutterRect)
     end
   end
@@ -332,6 +334,18 @@ class ListViewItem < NSView
     @contentView = NSImageView.new
     @contentView.image = @node.value
     addSubview(@contentView)
+  end
+
+  RIGHT_ALIGN = NSMutableParagraphStyle.new.tap { |p| p.alignment = NSRightTextAlignment }
+  LINE_NUMBER_COLOR = NSColor.colorWithCalibratedWhite(0.5, alpha:1)
+
+  def drawRect(rect)
+    line = @node.prefix
+    line.drawInRect(NSInsetRect(rect, 4, 0), withAttributes:{
+      NSFontAttributeName => listView.font,
+      NSForegroundColorAttributeName => LINE_NUMBER_COLOR,
+      NSParagraphStyleAttributeName => RIGHT_ALIGN
+    })
   end
 end
 
