@@ -1,3 +1,15 @@
+== For the kaigi
+
+* Make it handle faulty input. E.g. empty line, syntax error etc.
+* Add color box around current input indicating wether or not the input is:
+  * a valid ruby block (green)
+  * valid syntax but not (yet) a block (orange)
+  * syntax error (red)
+* Add a few convenience methods to create a window/view to play around with.
+* Add ‘try ruby’
+
+== OLD TODOS
+
 * File tickets on MR trac for all current dietrb spec failures
 * Automatically resize input field as long as input is needed.
 * DietRB fails when trying to complete methods on `nil'
