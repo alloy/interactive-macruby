@@ -346,9 +346,10 @@ class ListViewItem < NSView
 
   RIGHT_ALIGN = NSMutableParagraphStyle.new.tap { |p| p.alignment = NSRightTextAlignment }
   LINE_NUMBER_COLOR = NSColor.colorWithCalibratedWhite(0.5, alpha:1)
+  LINE_NUMBER_RECT = NSMakeRect(4, 0, 21, 22)
 
-  def drawRect(rect)
-    lineNumber.to_s.drawInRect(NSInsetRect(rect, 4, 0), withAttributes:{
+  def drawRect(_)
+    lineNumber.to_s.drawInRect(LINE_NUMBER_RECT, withAttributes:{
       NSFontAttributeName => listView.font,
       NSForegroundColorAttributeName => LINE_NUMBER_COLOR,
       NSParagraphStyleAttributeName => RIGHT_ALIGN
