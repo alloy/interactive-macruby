@@ -80,8 +80,8 @@ class IRBViewController < NSViewController
     listView.addNode(node)
   end
 
-  def addConsoleNode(node)
-    view.listView.inputFieldListItem.lineNumber = @context.line
+  def addConsoleNode(node, updateCurrentLine:updateCurrentLine)
+    view.listView.inputFieldListItem.lineNumber = @context.line + 1 if updateCurrentLine
     addNode(node, toListView:view.listView)
   end
 
@@ -89,24 +89,17 @@ class IRBViewController < NSViewController
 
   def makeInputFieldPromptForInput(clear = true)
     @inputField.stringValue = '' if clear
-    @inputField.enabled = true
+    #@inputField.enabled = true
     view.window.makeFirstResponder(@inputField)
   end
 
   def processInput(line)
-    @sourceBuffer << line
+    return if line.empty?
     addToHistory(line)
-
     node = BasicNode.alloc.initWithPrefix(@context.line, value:line)
-    addConsoleNode(node)
-    makeInputFieldPromptForInput(true)
-
-    if @sourceBuffer.code_block?
-      @inputField.enabled = false
-      @thread[:input] = @sourceBuffer.buffer
-      @thread.run
-      @sourceBuffer = IRB::Source.new
-    end
+    addConsoleNode(node, updateCurrentLine:true)
+    @thread[:input] = line
+    @thread.run
   end
 
   def addToHistory(line)
@@ -115,18 +108,18 @@ class IRBViewController < NSViewController
   end
 
   def receivedResult(result)
-    addConsoleNode(ObjectNode.nodeForObject(result))
+    addConsoleNode(ObjectNode.nodeForObject(result), updateCurrentLine:false)
     @delegate.receivedResult(self)
     makeInputFieldPromptForInput
   end
 
   def receivedOutput(output)
-    addConsoleNode(BasicNode.alloc.initWithValue(output))
+    addConsoleNode(BasicNode.alloc.initWithValue(output), updateCurrentLine:false)
   end
 
   def receivedException(exception)
     string = IRB.formatter.exception(exception)
-    addConsoleNode(BasicNode.alloc.initWithValue(string))
+    addConsoleNode(BasicNode.alloc.initWithValue(string), updateCurrentLine:false)
     makeInputFieldPromptForInput
   end
 
@@ -186,21 +179,18 @@ class IRBViewController < NSViewController
     @context      = IRB::Cocoa::Context.new(self, object, binding)
     @output       = IRB::Cocoa::Output.new(self)
     @completion   = IRB::Completion.new(@context)
-    @sourceBuffer = IRB::Source.new
     
     @thread = Thread.new(self, @context) do |controller, context|
       IRB::Driver.current = controller
       Thread.stop # stop now, there's no input yet
       
       loop do
-        if input = Thread.current[:input]
+        if line = Thread.current[:input]
           Thread.current[:input] = nil
-          input.each do |line|
-            unless context.process_line(line)
-              controller.performSelectorOnMainThread("terminate",
-                                          withObject: nil,
-                                       waitUntilDone: false)
-            end
+          unless context.process_line(line)
+            controller.performSelectorOnMainThread("terminate",
+                                        withObject: nil,
+                                     waitUntilDone: false)
           end
           Thread.stop # done processing, stop and await new input
         end
