@@ -100,6 +100,7 @@ class IRBViewController < NSViewController
     addConsoleNode(node, updateCurrentLine:true)
     @thread[:input] = line
     @thread.run
+    makeInputFieldPromptForInput(true)
   end
 
   def addToHistory(line)
@@ -137,7 +138,7 @@ class IRBViewController < NSViewController
     #p selector
     case selector
     when :"insertNewline:"
-      processInput(textView.string)
+      processInput(textView.string.dup)
     when :"cancelOperation:"
       toggleFullScreenMode(nil) if view.isInFullScreenMode
     when :"insertTab:"
