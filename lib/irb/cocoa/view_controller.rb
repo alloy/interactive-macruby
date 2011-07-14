@@ -81,6 +81,7 @@ class IRBViewController < NSViewController
   end
 
   def addConsoleNode(node)
+    view.listView.inputFieldListItem.lineNumber = @context.line
     addNode(node, toListView:view.listView)
   end
 
@@ -96,7 +97,7 @@ class IRBViewController < NSViewController
     @sourceBuffer << line
     addToHistory(line)
 
-    node = BasicNode.alloc.initWithPrefix((@context.line).to_s, value:line)
+    node = BasicNode.alloc.initWithPrefix(@context.line, value:line)
     addConsoleNode(node)
     makeInputFieldPromptForInput(true)
 

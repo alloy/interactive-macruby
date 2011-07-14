@@ -2,6 +2,8 @@
 # 2. The ListView then manages the layout of list items based on their height
 # 3. Finally the ListView updates its own height based on the total length
 
+# TODO use a data source, in this case the view controller, to get the nodes and line numbers?
+
 class NestedListView < NSView
   attr_accessor :nodes
 
@@ -114,18 +116,20 @@ class NestedListView < NSView
 end
 
 class ListView < NestedListView
+  attr_reader :inputFieldListItem
+
   def initWithFrame(frame)
     if super
       self.autoresizingMask    = NSViewWidthSizable | NSViewMinYMargin
       self.autoresizesSubviews = false
-      @inputFieldContainer = ListViewInputField.new
-      addSubview(@inputFieldContainer)
+      @inputFieldListItem = ListViewInputField.new
+      addSubview(@inputFieldListItem)
       self
     end
   end
 
   def inputField
-    @inputFieldContainer.contentView
+    @inputFieldListItem.contentView
   end
 
   def nested?
@@ -166,7 +170,7 @@ class ListView < NestedListView
 
   def listViewItems
     views = subviews.dup
-    views.delete(@inputFieldContainer)
+    views.delete(@inputFieldListItem)
     views
   end
 
@@ -184,7 +188,7 @@ class ListView < NestedListView
   end
 
   def needsLayoutStartingAtListItemAtIndex(listItemIndex)
-    super(listItemIndex == 0 ? 0 : listItemIndex - 1) # offset for @inputFieldContainer
+    super(listItemIndex == 0 ? 0 : listItemIndex - 1) # offset for @inputFieldListItem
   end
 end
 
@@ -336,12 +340,15 @@ class ListViewItem < NSView
     addSubview(@contentView)
   end
 
+  def lineNumber
+    @node.prefix
+  end
+
   RIGHT_ALIGN = NSMutableParagraphStyle.new.tap { |p| p.alignment = NSRightTextAlignment }
   LINE_NUMBER_COLOR = NSColor.colorWithCalibratedWhite(0.5, alpha:1)
 
   def drawRect(rect)
-    line = @node.prefix
-    line.drawInRect(NSInsetRect(rect, 4, 0), withAttributes:{
+    lineNumber.to_s.drawInRect(NSInsetRect(rect, 4, 0), withAttributes:{
       NSFontAttributeName => listView.font,
       NSForegroundColorAttributeName => LINE_NUMBER_COLOR,
       NSParagraphStyleAttributeName => RIGHT_ALIGN
@@ -349,13 +356,15 @@ class ListViewItem < NSView
   end
 end
 
-class ListViewInputField < NSView
-  attr_reader :contentView
+class ListViewInputField < ListViewItem
+  attr_accessor :lineNumber
 
   def init
     if super
       self.autoresizingMask    = NSViewNotSizable
       self.autoresizesSubviews = false # We manage them in updateFrameWithWidth:
+
+      @lineNumber = 1
 
       @contentView             = NSTextField.new
       @contentView.bezeled     = false
@@ -371,9 +380,12 @@ class ListViewInputField < NSView
     end
   end
 
+  def viewDidMoveToSuperview
+  end
+
   def updateFrameSizeWithWidth(width)
     # always update the font, it might have changed in the meantime
-    @contentView.font = superview.font
+    @contentView.font = listView.font
 
     contentViewX = ListViewItem::ROOT_LIST_ITEM_CONTENT_VIEW_X
     @contentView.frame = NSMakeRect(contentViewX, 0, width - contentViewX, 22)
