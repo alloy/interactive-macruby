@@ -20,11 +20,49 @@ module IRB
     end
 
     def report_result(result)
-      puts(formatter.result(result))
+      output(formatter.result(result))
     end
 
     def report_exception(exception)
-      puts(formatter.exception(exception))
+      output(formatter.exception(exception))
+    end
+
+    def process_line(line)
+      prompt_and_line = formatter.reindent_last_line(self) { @source << line }
+      yield(*prompt_and_line) if prompt_and_line && block_given?
+
+      return false if @source.terminate?
+
+      if @source.syntax_error?
+        line, error = @line, @source.syntax_error
+        @source.pop
+        report_syntax_error(line, error)
+      elsif @source.code_block?
+        evaluate(@source)
+        clear_buffer
+      end
+      @line += 1
+      @level = source.level
+      
+      true
+    end
+
+    def report_syntax_error(line, error)
+      output(formatter.syntax_error(line, error))
+    end
+  end
+
+  class Formatter
+    def filter_backtrace(backtrace)
+      backtrace.reject do |line|
+        @filter_from_backtrace.any? { |pattern| pattern.match(line) }
+      end.map do |line|
+        if m = line.match(/^.+?(\(irb\).+)/)
+          m[1]
+        else
+          line
+        end
+      end
     end
   end
 
@@ -77,6 +115,10 @@ module IRB
       def report_exception(exception)
         send_to_view_controller("receivedException:", exception)
       end
+
+      def report_syntax_error(line, error)
+        send_to_view_controller("receivedSyntaxError:", [line, error])
+      end
     end
 
     class ColoredFormatter < IRB::ColoredFormatter
@@ -123,4 +165,10 @@ module IRB
 end
 
 IRB.formatter = IRB::Cocoa::ColoredFormatter.new
+
+# TODO This is a bug in MacRuby, for some reason __FILE__ in irb/formatter.rb expand to this file
+actual_irb_location = $:.find { |p| File.exist?(File.join(p, 'irb')) }
+IRB.formatter.filter_from_backtrace[0] = Regexp.new("^#{actual_irb_location}/irb")
+
+IRB.formatter.filter_from_backtrace << Regexp.new("^#{NSBundle.mainBundle.bundlePath}")
 $stdout = IRB::Driver::OutputRedirector.new

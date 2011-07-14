@@ -124,6 +124,12 @@ class IRBViewController < NSViewController
     makeInputFieldPromptForInput
   end
 
+  def receivedSyntaxError(lineAndError)
+    string = IRB.formatter.syntax_error(*lineAndError)
+    addConsoleNode(BasicNode.alloc.initWithValue(string), updateCurrentLine:false)
+    makeInputFieldPromptForInput
+  end
+
   def terminate
     @delegate.send(:irbViewControllerTerminated, self)
   end
