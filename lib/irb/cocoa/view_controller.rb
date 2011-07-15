@@ -247,6 +247,15 @@ module Kernel
                                                     waitUntilDone: true)
     nil
   end
-  
   private :irb
+
+  def window(frame = NSMakeRect(50, 50, 640, 480))
+    window = NSWindow.alloc.initWithContentRect(frame,
+                                      styleMask:NSResizableWindowMask | NSClosableWindowMask | NSTitledWindowMask,
+                                        backing:NSBackingStoreBuffered,
+                                          defer:false)
+    window.title = "Window for: #{NSApp.mainWindow.title}"
+    window.orderWindow(NSWindowBelow, relativeTo:NSApp.mainWindow.windowNumber)
+  end
+  private :window
 end

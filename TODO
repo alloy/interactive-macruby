@@ -1,8 +1,8 @@
 == For the kaigi
 
-* Add a few convenience methods to create a window/view to play around with.
-* Add ‘try ruby’
-* Add border around textfields that use the same highlighting
+* Add ‘try ruby’.
+* Add border around textfields that use the same highlighting as shown in the gutter.
+* Add a few convenience methods to create views to play around with?
 
 == OLD TODOS
 
