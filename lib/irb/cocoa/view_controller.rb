@@ -30,6 +30,7 @@ class IRBViewController < NSViewController
     @inputField.delegate = self
     @inputField.target = self
     @inputField.action = "inputFromInputField:"
+    @inputField.continuous = true
     setupContextualMenu
   end
 
@@ -98,8 +99,15 @@ class IRBViewController < NSViewController
     addToHistory(line)
     node = BasicNode.alloc.initWithPrefix(@context.line, value:line)
     addConsoleNode(node, updateCurrentLine:true)
+
     @thread[:input] = line
     @thread.run
+
+    @sourceValidationBuffer << line
+    if @sourceValidationBuffer.code_block? && !@sourceValidationBuffer.syntax_error?
+      @sourceValidationBuffer = IRB::Source.new
+    end
+
     makeInputFieldPromptForInput(true)
   end
 
@@ -135,6 +143,23 @@ class IRBViewController < NSViewController
   end
 
   # delegate methods of the input cell
+
+  def controlTextDidChange(notification)
+    sourceValidationWithCurrentSource do |source|
+      color = if source.syntax_error?
+        NSColor.redColor
+      elsif source.code_block?
+        if source.buffer.empty?
+          nil
+        else
+          NSColor.greenColor
+        end
+      else
+        NSColor.cyanColor
+      end
+      view.listView.highlightCurrentBlockWithColor(color)
+    end
+  end
 
   def control(control, textView:textView, completions:completions, forPartialWordRange:range, indexOfSelectedItem:item)
     @completion.call(textView.string).map { |s| s[range.location..-1] }
@@ -182,11 +207,20 @@ class IRBViewController < NSViewController
 
   private
 
+  def sourceValidationWithCurrentSource
+    unless empty = @inputField.stringValue.empty?
+      @sourceValidationBuffer << @inputField.stringValue
+    end
+    yield @sourceValidationBuffer
+    @sourceValidationBuffer.pop unless empty
+  end
+
   def setupIRBForObject(object, binding: binding)
     @context      = IRB::Cocoa::Context.new(self, object, binding)
     @output       = IRB::Cocoa::Output.new(self)
     @completion   = IRB::Completion.new(@context)
-    
+    @sourceValidationBuffer = IRB::Source.new
+
     @thread = Thread.new(self, @context) do |controller, context|
       IRB::Driver.current = controller
       Thread.stop # stop now, there's no input yet

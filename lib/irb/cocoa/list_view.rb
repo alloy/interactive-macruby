@@ -4,6 +4,36 @@
 
 # TODO use a data source, in this case the view controller, to get the nodes and line numbers?
 
+class ScrollableListView < NSScrollView
+  class ClipViewWithGutter < NSClipView
+    GUTTER_COLOR = NSColor.colorWithCalibratedWhite(0.9, alpha:1)
+
+    def drawRect(_)
+      super
+      gutterRect = self.bounds
+      gutterRect.size.width = ListViewItem::ROOT_LIST_ITEM_CONTENT_VIEW_X
+      GUTTER_COLOR.setFill
+      NSRectFill(gutterRect)
+    end
+  end
+
+  attr_reader :listView
+
+  def init
+    if super
+      self.backgroundColor = NSColor.whiteColor
+      self.hasHorizontalScroller = false
+      self.hasVerticalScroller = true
+
+      clipFrame = contentView.frame
+      self.contentView = ClipViewWithGutter.alloc.initWithFrame(clipFrame)
+      self.documentView = @listView = ListView.alloc.initWithFrame(clipFrame)
+
+      self
+    end
+  end
+end
+
 class NestedListView < NSView
   attr_accessor :nodes
 
@@ -168,6 +198,23 @@ class ListView < NestedListView
     (@font.pointSize / 2) > 10
   end
 
+  def highlightCurrentBlockWithColor(color)
+    if @highlightColor = color
+      listViewItems.reverse.each do |item|
+        if Fixnum === item.node.prefix
+          item.highlightWithColor(color)
+        else
+          break
+        end
+      end
+    else
+      listViewItems.each do |item|
+        item.highlightWithColor(color)
+      end
+    end
+    @inputFieldListItem.highlightWithColor(color)
+  end
+
   def listViewItems
     views = subviews.dup
     views.delete(@inputFieldListItem)
@@ -181,6 +228,7 @@ class ListView < NestedListView
     else
       addSubview(item, positioned:NSWindowAbove, relativeTo:items[-2])
     end
+    highlightCurrentBlockWithColor(Fixnum === item.node.prefix ? @highlightColor : nil)
   end
 
   def needsLayoutAfterChildListViewToggledStartingAtListItem(listItem)
@@ -189,36 +237,6 @@ class ListView < NestedListView
 
   def needsLayoutStartingAtListItemAtIndex(listItemIndex)
     super(listItemIndex == 0 ? 0 : listItemIndex - 1) # offset for @inputFieldListItem
-  end
-end
-
-class ScrollableListView < NSScrollView
-  class ClipViewWithGutter < NSClipView
-    GUTTER_COLOR = NSColor.colorWithCalibratedWhite(0.9, alpha:1)
-
-    def drawRect(_)
-      super
-      gutterRect = self.bounds
-      gutterRect.size.width = ListViewItem::ROOT_LIST_ITEM_CONTENT_VIEW_X
-      GUTTER_COLOR.setFill # TODO this is still too dark!
-      NSRectFill(gutterRect)
-    end
-  end
-
-  attr_reader :listView
-
-  def init
-    if super
-      self.backgroundColor = NSColor.whiteColor
-      self.hasHorizontalScroller = false
-      self.hasVerticalScroller = true
-
-      clipFrame = contentView.frame
-      self.contentView = ClipViewWithGutter.alloc.initWithFrame(clipFrame)
-      self.documentView = @listView = ListView.alloc.initWithFrame(clipFrame)
-
-      self
-    end
   end
 end
 
@@ -348,10 +366,21 @@ class ListViewItem < NSView
   LINE_NUMBER_COLOR = NSColor.colorWithCalibratedWhite(0.5, alpha:1)
   LINE_NUMBER_RECT = NSMakeRect(4, 0, 21, 22)
 
+  def highlightWithColor(color)
+    @highlightColor = color
+    self.needsDisplay = true
+  end
+
   def drawRect(_)
+    if @highlightColor
+      bounds = self.bounds
+      @highlightColor.setFill
+      NSRectFill(bounds)
+    end
+
     lineNumber.to_s.drawInRect(LINE_NUMBER_RECT, withAttributes:{
       NSFontAttributeName => listView.font,
-      NSForegroundColorAttributeName => LINE_NUMBER_COLOR,
+      NSForegroundColorAttributeName => @highlightColor ? NSColor.whiteColor : LINE_NUMBER_COLOR,
       NSParagraphStyleAttributeName => RIGHT_ALIGN
     })
   end
