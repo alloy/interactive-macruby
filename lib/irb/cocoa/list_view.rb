@@ -292,12 +292,16 @@ class ListViewItem < NSView
     listView.nested? ? NESTED_LIST_ITEM_CONTENT_VIEW_X : ROOT_LIST_ITEM_CONTENT_VIEW_X
   end
 
+  def image?
+    @node.value.is_a?(NSImage)
+  end
+
   def updateFrameSizeWithWidth(width)
     contentViewX = self.contentViewX
     contentWidth = width - contentViewX
 
     frame = nil
-    if @node.value.is_a?(NSImage)
+    if image?
       frame = NSMakeRect(0, 0, 0, 0)
       frame.size = @node.value.size
     else
@@ -365,6 +369,7 @@ class ListViewItem < NSView
   RIGHT_ALIGN = NSMutableParagraphStyle.new.tap { |p| p.alignment = NSRightTextAlignment }
   LINE_NUMBER_COLOR = NSColor.colorWithCalibratedWhite(0.5, alpha:1)
   LINE_NUMBER_RECT = NSMakeRect(4, 0, 21, 22)
+  LINE_NUMBER_FONT_SIZE = 12
 
   def highlightWithColor(color)
     @highlightColor = color
@@ -379,7 +384,7 @@ class ListViewItem < NSView
     end
 
     lineNumber.to_s.drawInRect(LINE_NUMBER_RECT, withAttributes:{
-      NSFontAttributeName => listView.font,
+      NSFontAttributeName => NSFont.fontWithName(listView.font.fontName, size:LINE_NUMBER_FONT_SIZE),
       NSForegroundColorAttributeName => @highlightColor ? NSColor.whiteColor : LINE_NUMBER_COLOR,
       NSParagraphStyleAttributeName => RIGHT_ALIGN
     })
@@ -413,12 +418,7 @@ class ListViewInputField < ListViewItem
   def viewDidMoveToSuperview
   end
 
-  def updateFrameSizeWithWidth(width)
-    # always update the font, it might have changed in the meantime
-    @contentView.font = listView.font
-
-    contentViewX = ListViewItem::ROOT_LIST_ITEM_CONTENT_VIEW_X
-    @contentView.frame = NSMakeRect(contentViewX, 0, width - contentViewX, 22)
-    self.frameSize = NSMakeSize(width, 22)
+  def image?
+    false
   end
 end
