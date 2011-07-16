@@ -165,6 +165,7 @@ module IRB
 end
 
 IRB.formatter = IRB::Cocoa::ColoredFormatter.new
+IRB.formatter.color_scheme = :light_background
 
 # TODO This is a bug in MacRuby, for some reason __FILE__ in irb/formatter.rb expand to this file
 actual_irb_location = $:.find { |p| File.exist?(File.join(p, 'irb')) }
