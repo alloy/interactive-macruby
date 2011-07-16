@@ -149,7 +149,7 @@ class IRBViewController < NSViewController
       color = nil
       begin
         if source.syntax_error?
-          color NSColor.redColor
+          color = NSColor.redColor
         elsif source.code_block?
           unless source.buffer.empty?
             color = NSColor.greenColor
