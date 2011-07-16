@@ -146,16 +146,19 @@ class IRBViewController < NSViewController
 
   def controlTextDidChange(notification)
     sourceValidationWithCurrentSource do |source|
-      color = if source.syntax_error?
-        NSColor.redColor
-      elsif source.code_block?
-        if source.buffer.empty?
-          nil
+      color = nil
+      begin
+        if source.syntax_error?
+          color NSColor.redColor
+        elsif source.code_block?
+          unless source.buffer.empty?
+            color = NSColor.greenColor
+          end
         else
-          NSColor.greenColor
+          color = NSColor.cyanColor
         end
-      else
-        NSColor.cyanColor
+      rescue IndexError # ripper takes apart unicode chars
+        color = NSColor.cyanColor
       end
       view.listView.highlightCurrentBlockWithColor(color)
     end
